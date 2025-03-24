@@ -1,0 +1,4 @@
+name: polaris-api
+version: '1.0'
+main: us.polarismc.api.MainAPI
+api-version: '1.21'
