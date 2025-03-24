@@ -42,7 +42,7 @@ public class ItemBuilder {
     }
 
     public ItemBuilder(ItemStack item, int amount) {
-        this.utils = new PluginUtils(MainAPI.getApi(), "");
+        this.utils = new PluginUtils(MainAPI.api, "");
         this.item = item;
         this.item.setAmount(amount);
         this.meta = item.getItemMeta();
