@@ -95,6 +95,10 @@ public class PluginUtils {
         broadcast(true, null, messages);
     }
 
+    public void broadcast(boolean prefix, String... messages) {
+        broadcast(prefix, null, messages);
+    }
+
     public void broadcast(Sound sound, String... messages) {
         broadcast(true, sound, messages);
     }
@@ -123,6 +127,10 @@ public class PluginUtils {
         message(receivers, prefix, null, messages);
     }
 
+    public void message(Collection<? extends CommandSender> receivers, Sound sound, String... messages) {
+        message(receivers, true, sound, messages);
+    }
+
     public void message(Collection<? extends CommandSender> receivers, boolean prefix, Sound sound, String... messages) {
         receivers.forEach(receiver -> message(receiver, prefix, sound, Arrays.stream(messages).map(this::chat).toArray(Component[]::new)));
     }
@@ -134,6 +142,10 @@ public class PluginUtils {
     //region [Métodos de Component]
     public void broadcast(Component... messages) {
         broadcast(true, null, messages);
+    }
+
+    public void broadcast(boolean prefix, Component... messages) {
+        broadcast(prefix, null, messages);
     }
 
     public void broadcast(Sound sound, Component... messages) {
@@ -158,6 +170,10 @@ public class PluginUtils {
 
     public void message(Collection<? extends CommandSender> receivers, boolean prefix, Component... messages) {
         message(receivers, prefix, null, messages);
+    }
+
+    public void message(Collection<? extends CommandSender> receivers, Sound sound, Component... messages) {
+        message(receivers, true, sound, messages);
     }
 
     public void message(Collection<? extends CommandSender> receivers, boolean prefix, Sound sound, Component... messages) {
