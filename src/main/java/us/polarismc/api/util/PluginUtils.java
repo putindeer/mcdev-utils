@@ -12,9 +12,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import us.polarismc.api.util.generator.VoidGenerator;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -296,5 +294,119 @@ public class PluginUtils {
         }
         return false;
     }
+
+    /**
+     * Le da formato a un tiempo en segundos a un {@link String}.
+     *
+     * @param time         El tiempo total en segundos.
+     * @param showSeconds  Si se deben mostrar los segundos.
+     * @param showMinutes  Si se deben mostrar los minutos.
+     * @param showHours    Si se deben mostrar las horas.
+     * @return String de texto con el tiempo con formato.
+     */
+    public String formatTime(int time, boolean showSeconds, boolean showMinutes, boolean showHours) {
+        int hours = time / 3600;
+        int minutes = (time % 3600) / 60;
+        int seconds = time % 60;
+
+        List<String> parts = new ArrayList<>();
+
+        if (showHours) {
+            parts.add(String.format("%02d", hours));
+        }
+        if (showMinutes) {
+            if (showHours) {
+                parts.add(String.format("%02d", minutes));
+            } else {
+                parts.add(String.valueOf(hours * 60 + minutes));
+            }
+        }
+        if (showSeconds) {
+            if (showHours || showMinutes) {
+                parts.add(String.format("%02d", seconds));
+            } else {
+                parts.add(String.valueOf(time));
+            }
+        }
+
+        return String.join(":", parts);
+    }
+
+    //region [Submétodos de formatTime]
+    public String formatTime(int time) {
+        return formatTime(time, true, true, false);
+    }
+
+    public String formatSec(int time) {
+        return formatTime(time, true, false, false);
+    }
+
+    public String formatMin(int time) {
+        return formatTime(time, false, true, false);
+    }
+
+    public String formatHour(int time) {
+        return formatTime(time, false, false, true);
+    }
+    //endregion
+
+    /**
+     * Le da formato a un tiempo en segundos a un {@link Component}.
+     *
+     * @param time         El tiempo total en segundos.
+     * @param showSeconds  Si se deben mostrar los segundos.
+     * @param showMinutes  Si se deben mostrar los minutos.
+     * @param showHours    Si se deben mostrar las horas.
+     * @return Componente de texto con el tiempo con formato.
+     */
+    public Component formatComponentTime(int time, boolean showSeconds, boolean showMinutes, boolean showHours) {
+        int hours = time / 3600;
+        int minutes = (time % 3600) / 60;
+        int seconds = time % 60;
+
+        Component comp = Component.empty();
+
+        if (showHours) {
+            comp = comp.append(Component.text(String.format("%02d", hours)));
+        }
+
+        if (showMinutes) {
+            if (showHours) {
+                comp = comp.append(Component.text(":"));
+                comp = comp.append(Component.text(String.format("%02d", minutes)));
+            } else {
+                comp = comp.append(Component.text(hours * 60 + minutes));
+            }
+        }
+
+        if (showSeconds) {
+            if (showHours || showMinutes) {
+                comp = comp.append(Component.text(":"));
+                comp = comp.append(Component.text(String.format("%02d", seconds)));
+            } else {
+                comp = comp.append(Component.text(time));
+            }
+        }
+
+        return comp;
+    }
+
+    //region [Submétodos de formatComponentTime]
+    public Component formatComponentTime(int time) {
+        return formatComponentTime(time, true, true, false);
+    }
+
+    public Component formatSecComponent(int time) {
+        return formatComponentTime(time, true, false, false);
+    }
+
+    public Component formatMinComponent(int time) {
+        return formatComponentTime(time, false, true, false);
+    }
+
+    public Component formatHourComponent(int time) {
+        return formatComponentTime(time, false, false, true);
+    }
+    //endregion
 }
 
