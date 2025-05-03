@@ -3,6 +3,7 @@ package us.polarismc.api.util;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.command.CommandSender;
@@ -10,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import us.polarismc.api.managers.StartupManager;
 import us.polarismc.api.util.generator.VoidGenerator;
 
 import java.util.*;
@@ -23,63 +25,57 @@ public class PluginUtils {
     public PluginUtils(JavaPlugin plugin, String prefix) {
         this.plugin = plugin;
         this.prefix = chat(prefix);
+
+        StartupManager.registerPlugin(plugin, this);
     }
 
     /**
-     * Prefix del plugin
+     * Plugin prefix
      */
     public final Component prefix;
 
     /**
-     * Convierte un texto con códigos HEX a un 'Component'
-     * @param s La 'String' que recibe
-     * @return El texto convertido
+     * Converts a text with HEX codes to a {@link Component}
+     * @param string The input as a {@link String}
+     * @return The converted text
      */
-    public Component chat(String s) {
-        return MiniMessage.miniMessage().deserialize(convert(s));
+    public Component chat(String string) {
+        return MiniMessage.miniMessage().deserialize(convert(string));
     }
 
     /**
-     * Esto está aquí únicamente para compatibilidad con algunos métodos.
+     * Converts HEX codes to MiniMessage tags in order to deserialize it.
+     * @param s The {@link String} with HEX codes
+     * @return The {@link String} with MiniMessage tags
      */
-    public Component chat(Component s) {
-        return s;
-    }
-
-    /**
-     * Convierte códigos HEX a tags de MiniMessage
-     * @param s La 'String' con códigos HEX
-     * @return La 'String' con tags de MiniMessage
-     */
-    public String convert(String s) {
+    private String convert(String s) {
         s = s.replaceAll("&#([A-Fa-f0-9]{6})", "<#$1>");
         return s.replace("&0", "<black>").replace("&1", "<dark_blue>").replace("&2", "<dark_green>").replace("&3", "<dark_aqua>").replace("&4", "<dark_red>").replace("&5", "<dark_purple>").replace("&6", "<gold>").replace("&7", "<gray>").replace("&8", "<dark_gray>").replace("&9", "<blue>").replace("&a", "<green>").replace("&b", "<aqua>").replace("&c", "<red>").replace("&d", "<light_purple>").replace("&e", "<yellow>").replace("&f", "<white>").replace("&n", "<underlined>").replace("&m", "<strikethrough>").replace("&k", "<obfuscated>").replace("&o", "<italic>").replace("&l", "<bold>").replace("&r", "<reset>");
     }
 
     /**
-     * Envía un mensaje versátil a un destinatario con múltiples opciones de configuración.<br><br>
-     * Este método permite enviar mensajes con:<br><br>
-     * - Prefijo opcional<br>
-     * - Múltiples tipos de mensajes ({@link String} o {@link Component})<br>
-     * - Reproducción opcional de sonido<br><br>
+     * Sends a versatile message to a recipient with multiple configuration options.<br><br>
+     * This method allows sending messages with:<br><br>
+     * - Optional prefix<br>
+     * - Multiple message types ({@link String} or {@link Component})<br>
+     * - Optional sound playback<br><br>
      *
-     * Existen varios submetodos más simples en caso de que hayan argumentos innecesarios o se necesite enviar a varios jugadores:<br><br>
-     * - {@code message(receivers, messages)}: Envía mensaje con prefijo por defecto<br>
-     * - {@code message(receivers, sound, messages)}: Envía mensaje con sonido<br>
-     * - {@code message(receivers, prefix,  messages)}: Envía mensaje con prefix<br><br>
-     * También existe el método {@code broadcast(prefix, sound, messages)} que envia un mensaje a todos los jugadores, incluyendo la consola.
-     * Este método también cuenta con los submetodos anteriores.
+     * There are several simpler sub-methods in case there are unnecessary arguments or you need to send to multiple players:<br><br>
+     * - {@code message(receivers, messages)}: Sends message with default prefix<br>
+     * - {@code message(receivers, sound, messages)}: Sends message with sound<br>
+     * - {@code message(receivers, prefix, messages)}: Sends message with prefix<br><br>
+     * There is also the {@code broadcast(prefix, sound, messages)} method that sends a message to all players, including the console.
+     * This method also has the previous sub-methods.
      *
-     * @param receiver Destinatario del mensaje (puede ser un {@link Player} o un {@link CommandSender})
-     * @param usePrefix Determina si se usa el prefix del plugin en el mensaje
-     * @param sound Sonido opcional para reproducir al enviar el mensaje (solo se aplica a {@link Player})
-     * @param messages Los mensajes ({@link String} o {@link Component}) que se tienen que enviar
-     *
+     * @param receiver Message recipient (can be a {@link Player} or a {@link CommandSender})
+     * @param usePrefix Determines if the plugin prefix is used in the message
+     * @param sound Optional sound to play when sending the message (only applies to {@link Player})
+     * @param messages The messages ({@link String} or {@link Component}) to be sent
      */
     public void message(CommandSender receiver, boolean usePrefix, Sound sound, Component... messages) {
         for (Component component : messages) {
             Component prefixComponent = usePrefix ? prefix : Component.text("");
-            receiver.sendMessage(prefixComponent.append(chat(component)));
+            receiver.sendMessage(prefixComponent.append(component));
         }
 
         if (sound != null && receiver instanceof Player player) {
@@ -87,8 +83,8 @@ public class PluginUtils {
         }
     }
 
-    //region [Submetodos de 'message']
-    //region [Metodos de String]
+    //region [Sub-methods of 'message']
+    //region [String methods]
     public void broadcast(String... messages) {
         broadcast(true, null, messages);
     }
@@ -137,7 +133,7 @@ public class PluginUtils {
         message(receiver, prefix, sound, Arrays.stream(messages).map(this::chat).toArray(Component[]::new));
     }
     //endregion
-    //region [Métodos de Component]
+    //region [Component methods]
     public void broadcast(Component... messages) {
         broadcast(true, null, messages);
     }
@@ -184,20 +180,82 @@ public class PluginUtils {
     //endregion
     //endregion
 
+    //region [Methods of 'log']
     /**
-     * Restablece la vida del jugador al máximo
-     * @param p El jugador
+     * Sends an informative message to the server console
+     * @param messages The messages to be sent
+     */
+    public void log(String... messages) {
+        for (String message : messages) {
+            plugin.getServer().getConsoleSender().sendMessage(chat("<gray>[<aqua>" + plugin.getName() + "<gray>] <reset>" + message));
+        }
+    }
+
+    /**
+     * Sends a warning message to the server console
+     * @param messages The warning messages to be sent
+     */
+    public void warning(String... messages) {
+        for (String message : messages) {
+            plugin.getLogger().warning(message);
+        }
+    }
+
+    /**
+     * Sends a severe error message to the server console
+     * @param messages The error messages to be sent
+     */
+    public void severe(String... messages) {
+        for (String message : messages) {
+            plugin.getLogger().severe(message);
+        }
+    }
+
+    /**
+     * Sends an informative message to the server console
+     * @param messages The messages to be sent
+     */
+    public void log(Component... messages) {
+        for (Component message : messages) {
+            plugin.getServer().getConsoleSender().sendMessage(chat("<gray>[<aqua>" + plugin.getName() + "<gray>] <reset>").append(message));
+        }
+    }
+
+    /**
+     * Sends a warning message to the server console
+     * @param messages The warning messages to be sent
+     */
+    public void warning(Component... messages) {
+        for (Component message : messages) {
+            plugin.getLogger().warning(PlainTextComponentSerializer.plainText().serialize(message));
+        }
+    }
+
+    /**
+     * Sends a severe error message to the server console
+     * @param messages The error messages to be sent
+     */
+    public void severe(Component... messages) {
+        for (Component message : messages) {
+            plugin.getLogger().severe(PlainTextComponentSerializer.plainText().serialize(message));
+        }
+    }
+    //endregion
+
+    /**
+     * Restores the player's health to maximum
+     * @param p The player whose health will be restored to maximum
      */
     public void setMaxHealth(Player p) {
         p.setHealth(Objects.requireNonNull(p.getAttribute(Attribute.MAX_HEALTH)).getDefaultValue());
     }
 
     /**
-     * Determina si una localización está dentro de un area determinada
-     * @param loc Localización a determinar
-     * @param cornerOne Primera esquina del area determinada
-     * @param cornerTwo Segunda esquina del area determinada
-     * @return Si la localización está dentro devuelve 'true', si está fuera, devuelve 'false'
+     * Determines if a location is inside a specified area
+     * @param loc Location to check
+     * @param cornerOne First corner of the specified area
+     * @param cornerTwo Second corner of the specified area
+     * @return If the location is inside returns 'true', if outside, returns 'false'
      */
     public boolean isInside(Location loc, Location cornerOne, Location cornerTwo) {
         if (cornerOne == null || cornerTwo == null) return false;
@@ -223,10 +281,11 @@ public class PluginUtils {
     }
 
     /**
-     * Crea un mundo completamente vacio con un bloque de cristal en [0,64,0]
-     * @param name El nombre del mundo
-     * @return Devuelve el mundo creado
+     * Creates a completely empty world with a glass block at [0,64,0]
+     * @param name World name
+     * @return Returns the created world
      */
+    @Deprecated(forRemoval = true)
     public World createVoidWorld(String name) {
         WorldCreator creator = new WorldCreator(name);
         creator.generator(new VoidGenerator());
@@ -247,15 +306,15 @@ public class PluginUtils {
 
             return world;
         } else {
-            plugin.getLogger().severe("The world '" + name + "' was not loaded.");
+            severe("The world '" + name + "' was not loaded.");
             return null;
         }
     }
 
     /**
-     * Ejecuta una tarea ({@link Runnable}) después de un tiempo especificado.
-     * @param delay El tiempo de espera en ticks antes de ejecutar.
-     * @param run La tarea a ejecutar, implementada como un {@code Runnable}.
+     * Executes a task ({@link Runnable}) after a specified time.
+     * @param delay The waiting time in ticks before execution.
+     * @param run The task to execute, implemented as a {@code Runnable}.
      */
     public void delay(int delay, Runnable run) {
         Bukkit.getScheduler().runTaskLater(plugin, run,delay);
@@ -266,15 +325,15 @@ public class PluginUtils {
     }
 
     /**
-     * Verifica si un inventario tiene espacio suficiente para un ItemStack específico,
-     * considerando la posibilidad de apilarlo con stacks existentes en el inventario.
+     * Checks if an inventory has enough space for a specific ItemStack,
+     * considering the possibility of stacking it with existing stacks in the inventory.
      * <br>
-     * Es útil para determinar si, al agregar un ítem, este será almacenado correctamente
-     * o si terminará en el cursor del jugador o eliminado por falta de espacio.
+     * It's useful to determine if, when adding an item, it will be stored correctly
+     * or if it will end up in the player's cursor or removed due to lack of space.
      *
-     * @param inv  El inventario al que se quiere añadir el ítem.
-     * @param item El ítem que se quiere añadir.
-     * @return {@code true} si el ítem se puede almacenar completamente, {@code false} si no hay espacio suficiente.
+     * @param inv  The inventory to which the item will be added.
+     * @param item The item to be added.
+     * @return {@code true} if the item can be completely stored, {@code false} if there isn't enough space.
      */
     public boolean canCompletelyStore(Inventory inv, ItemStack item) {
         int toStore = item.getAmount();
@@ -296,13 +355,13 @@ public class PluginUtils {
     }
 
     /**
-     * Le da formato a un tiempo en segundos a un {@link String}.
+     * Formats a time in seconds into a {@link String}.
      *
-     * @param time         El tiempo total en segundos.
-     * @param showSeconds  Si se deben mostrar los segundos.
-     * @param showMinutes  Si se deben mostrar los minutos.
-     * @param showHours    Si se deben mostrar las horas.
-     * @return String de texto con el tiempo con formato.
+     * @param time         The total time in seconds.
+     * @param showSeconds  Whether to show seconds.
+     * @param showMinutes  Whether to show minutes.
+     * @param showHours    Whether to show hours.
+     * @return String of text with formatted time.
      */
     public String formatTime(int time, boolean showSeconds, boolean showMinutes, boolean showHours) {
         int hours = time / 3600;
@@ -332,7 +391,7 @@ public class PluginUtils {
         return String.join(":", parts);
     }
 
-    //region [Submétodos de formatTime]
+    //region [Sub-methods of formatTime]
     public String formatTime(int time) {
         return formatTime(time, true, true, false);
     }
@@ -351,13 +410,13 @@ public class PluginUtils {
     //endregion
 
     /**
-     * Le da formato a un tiempo en segundos a un {@link Component}.
+     * Formats a time in seconds into a {@link Component}.
      *
-     * @param time         El tiempo total en segundos.
-     * @param showSeconds  Si se deben mostrar los segundos.
-     * @param showMinutes  Si se deben mostrar los minutos.
-     * @param showHours    Si se deben mostrar las horas.
-     * @return Componente de texto con el tiempo con formato.
+     * @param time         The total time in seconds.
+     * @param showSeconds  Whether to show seconds.
+     * @param showMinutes  Whether to show minutes.
+     * @param showHours    Whether to show hours.
+     * @return Component of text with formatted time.
      */
     public Component formatComponentTime(int time, boolean showSeconds, boolean showMinutes, boolean showHours) {
         int hours = time / 3600;
@@ -391,7 +450,7 @@ public class PluginUtils {
         return comp;
     }
 
-    //region [Submétodos de formatComponentTime]
+    //region [Sub-methods of formatComponentTime]
     public Component formatComponentTime(int time) {
         return formatComponentTime(time, true, true, false);
     }
@@ -409,4 +468,3 @@ public class PluginUtils {
     }
     //endregion
 }
-
