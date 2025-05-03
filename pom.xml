@@ -6,7 +6,7 @@
 
     <groupId>us.polarismc</groupId>
     <artifactId>polaris-api</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <packaging>jar</packaging>
 
     <name>polaris-api</name>
