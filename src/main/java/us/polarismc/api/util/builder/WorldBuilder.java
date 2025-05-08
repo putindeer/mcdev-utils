@@ -57,6 +57,7 @@ public class WorldBuilder {
      * @param plugin The JavaPlugin instance that is creating the world
      */
     public WorldBuilder(String name, JavaPlugin plugin) {
+        this.name = name;
         this.plugin = plugin;
     }
 
@@ -180,7 +181,7 @@ public class WorldBuilder {
      * @param <T> The type of value for the game rule
      * @return This {@link WorldBuilder} instance
      */
-    public <T> WorldBuilder gameRule(GameRule<T> rule, T value) {
+    public <T> WorldBuilder gamerule(GameRule<T> rule, T value) {
         gamerules.put(rule, value);
         return this;
     }
