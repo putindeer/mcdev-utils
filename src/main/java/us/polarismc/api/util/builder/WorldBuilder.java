@@ -37,7 +37,7 @@ import java.util.Map;
 @SuppressWarnings("unused")
 public class WorldBuilder {
     private final JavaPlugin plugin;
-    private String name;
+    private final String name;
     private Long seed;
     private World.Environment environment;
     private ChunkGenerator generator;
@@ -67,7 +67,7 @@ public class WorldBuilder {
      * @param seed The seed value that determines the world's terrain generation
      * @return This {@link WorldBuilder} instance
      */
-    public WorldBuilder seed(long seed) {
+    public WorldBuilder seed(Long seed) {
         this.seed = seed;
         return this;
     }

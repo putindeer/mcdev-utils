@@ -11,7 +11,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import us.polarismc.api.PolarisAPI;
+import us.polarismc.api.managers.LangManager;
 import us.polarismc.api.managers.StartupManager;
+import us.polarismc.api.util.builder.ItemBuilder;
 import us.polarismc.api.util.generator.VoidGenerator;
 
 import java.util.*;
@@ -20,13 +23,16 @@ import java.util.stream.Stream;
 
 @SuppressWarnings("unused")
 public class PluginUtils {
-    private final JavaPlugin plugin;
+    public final JavaPlugin plugin;
+    public final LangManager lang;
 
     public PluginUtils(JavaPlugin plugin, String prefix) {
         this.plugin = plugin;
         this.prefix = chat(prefix);
-
-        StartupManager.registerPlugin(plugin, this);
+        if (plugin != null) {
+            this.lang = new LangManager(plugin);
+            StartupManager.registerPlugin(plugin, this);
+        } else lang = null;
     }
 
     /**
@@ -41,6 +47,16 @@ public class PluginUtils {
      */
     public Component chat(String string) {
         return MiniMessage.miniMessage().deserialize(convert(string));
+    }
+
+    /**
+     * Converts and translates a text with HEX codes to a {@link Component}
+     * @param string The input as a {@link String}
+     * @param player The player that is getting the text translated
+     * @return The converted text
+     */
+    public Component chat(String string, Player player) {
+        return MiniMessage.miniMessage().deserialize(convert(lang.translate(player, string)));
     }
 
     /**
@@ -125,12 +141,12 @@ public class PluginUtils {
         message(receivers, true, sound, messages);
     }
 
-    public void message(Collection<? extends CommandSender> receivers, boolean prefix, Sound sound, String... messages) {
-        receivers.forEach(receiver -> message(receiver, prefix, sound, Arrays.stream(messages).map(this::chat).toArray(Component[]::new)));
+    public void message(Collection<? extends CommandSender> receivers, boolean usePrefix, Sound sound, String... messages) {
+        receivers.forEach(r -> message(r, usePrefix, sound, messages));
     }
 
-    public void message(CommandSender receiver, boolean prefix, Sound sound, String... messages) {
-        message(receiver, prefix, sound, Arrays.stream(messages).map(this::chat).toArray(Component[]::new));
+    public void message(CommandSender receiver, boolean usePrefix, Sound sound, String... messages) {
+        message(receiver, usePrefix, sound, Arrays.stream(messages).map(msg -> chat(lang.translate(receiver, msg))).toArray(Component[]::new));
     }
     //endregion
     //region [Component methods]
@@ -465,6 +481,77 @@ public class PluginUtils {
 
     public Component formatHourComponent(int time) {
         return formatComponentTime(time, false, false, true);
+    }
+    //endregion
+
+    //region [ItemBuilder methods]
+    /**
+     * Constructs an ItemBuilder with the specified material and amount of 1.
+     *
+     * @param mat The {@link Material} to use for the item
+     */
+    public ItemBuilder ib(Material mat) {
+        return ib(new ItemStack(mat), 1, null);
+    }
+
+    /**
+     * Constructs an ItemBuilder with the specified material and amount.
+     *
+     * @param mat    The {@link Material} to use for the item
+     * @param amount The amount of items in the stack
+     */
+    public ItemBuilder ib(Material mat, int amount) {
+        return ib(new ItemStack(mat), amount, null);
+    }
+
+    /**
+     * Constructs an ItemBuilder with the specified material and amount.
+     *
+     * @param mat    The {@link Material} to use for the item
+     * @param player The player, used to translate using the translation keys of each player.
+     */
+    public ItemBuilder ib(Material mat, Player player) {
+        return ib(new ItemStack(mat), 1, player);
+    }
+
+    /**
+     * Constructs an ItemBuilder with an existing ItemStack and amount of 1.
+     *
+     * @param item The base {@link ItemStack} to modify
+     */
+    public ItemBuilder ib(ItemStack item) {
+        return ib(item, 1, null);
+    }
+
+    /**
+     * Constructs an ItemBuilder with an existing ItemStack and specified amount.
+     *
+     * @param item   The base {@link ItemStack} to modify
+     * @param amount The amount of items in the stack
+     */
+    public ItemBuilder ib(ItemStack item, int amount) {
+        return ib(item, amount, null);
+    }
+
+    /**
+     * Constructs an ItemBuilder with an existing ItemStack and amount of 1.
+     *
+     * @param item The base {@link ItemStack} to modify
+     * @param player The player, used to translate using the translation keys of each player.
+     */
+    public ItemBuilder ib(ItemStack item, Player player) {
+        return ib(item, 1, player);
+    }
+
+    /**
+     * Constructs an ItemBuilder with an existing ItemStack and specified amount.
+     *
+     * @param item   The base {@link ItemStack} to modify
+     * @param amount The amount of items in the stack
+     * @param player The player, used to translate using the translation keys of each player.
+     */
+    public ItemBuilder ib(ItemStack item, int amount, Player player) {
+        return new ItemBuilder(item, amount, player, this);
     }
     //endregion
 }
