@@ -1,9 +1,11 @@
 package us.polarismc.api.util;
 
+import io.papermc.paper.registry.TypedKey;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import net.kyori.adventure.title.Title;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.command.CommandSender;
@@ -11,11 +13,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
-import us.polarismc.api.PolarisAPI;
 import us.polarismc.api.managers.LangManager;
 import us.polarismc.api.managers.StartupManager;
 import us.polarismc.api.util.builder.ItemBuilder;
-import us.polarismc.api.util.generator.VoidGenerator;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -30,7 +30,8 @@ public class PluginUtils {
         this.plugin = plugin;
         this.prefix = chat(prefix);
         if (plugin != null) {
-            this.lang = new LangManager(plugin);
+            this.lang = null;
+            //this.lang = new LangManager(plugin);
             StartupManager.registerPlugin(plugin, this);
         } else lang = null;
     }
@@ -55,7 +56,8 @@ public class PluginUtils {
      * @param player The player that is getting the text translated
      * @return The converted text
      */
-    public Component chat(String string, Player player) {
+    public Component chat(String string, CommandSender player) {
+        if (lang == null) return chat(string);
         return MiniMessage.miniMessage().deserialize(convert(lang.translate(player, string)));
     }
 
@@ -112,6 +114,9 @@ public class PluginUtils {
     public void broadcast(Sound sound, String... messages) {
         broadcast(true, sound, messages);
     }
+    public void broadcast(TypedKey<Sound> soundKey, String... messages) {
+        broadcast(true, Sound.sound(soundKey, Sound.Source.MASTER, 10f, 1f), messages);
+    }
 
     public void broadcast(boolean prefix, Sound sound, String... messages) {
         message(Stream.concat(Bukkit.getOnlinePlayers().stream().map(p -> (CommandSender) p), Stream.of(Bukkit.getConsoleSender())).collect(Collectors.toList()), prefix, sound, messages);
@@ -123,6 +128,10 @@ public class PluginUtils {
 
     public void message(CommandSender receiver, Sound sound, String... messages) {
         message(receiver, true, sound, messages);
+    }
+
+    public void message(CommandSender receiver, TypedKey<Sound> soundKey, String... messages) {
+        message(receiver, true, Sound.sound(soundKey, Sound.Source.MASTER, 10f, 1f), messages);
     }
 
     public void message(CommandSender receiver, boolean prefix, String... messages) {
@@ -146,7 +155,7 @@ public class PluginUtils {
     }
 
     public void message(CommandSender receiver, boolean usePrefix, Sound sound, String... messages) {
-        message(receiver, usePrefix, sound, Arrays.stream(messages).map(msg -> chat(lang.translate(receiver, msg))).toArray(Component[]::new));
+        message(receiver, usePrefix, sound, Arrays.stream(messages).map(msg -> chat(msg, receiver)).toArray(Component[]::new));
     }
     //endregion
     //region [Component methods]
@@ -196,6 +205,17 @@ public class PluginUtils {
     //endregion
     //endregion
 
+    public void title(Player player, String title, String subtitle) {
+        title(player, title, subtitle, null);
+    }
+
+    public void title(Player player, String title, String subtitle, Sound sound) {
+        player.showTitle(Title.title(chat(title), chat(subtitle)));
+        if (sound != null) {
+            player.playSound(sound);
+        }
+    }
+
     //region [Methods of 'log']
     /**
      * Sends an informative message to the server console
@@ -225,6 +245,30 @@ public class PluginUtils {
         for (String message : messages) {
             plugin.getLogger().severe(message);
         }
+    }
+
+    /**
+     * Sends an informative message to the server console
+     * @param messages The messages to be sent
+     */
+    public void log(StackTraceElement... messages) {
+        log(Arrays.stream(messages).map(StackTraceElement::toString).collect(Collectors.joining("\n")));
+    }
+
+    /**
+     * Sends a warning message to the server console
+     * @param messages The warning messages to be sent
+     */
+    public void warning(StackTraceElement... messages) {
+        warning(Arrays.stream(messages).map(StackTraceElement::toString).collect(Collectors.joining("\n")));
+    }
+
+    /**
+     * Sends a severe error message to the server console
+     * @param messages The error messages to be sent
+     */
+    public void severe(StackTraceElement... messages) {
+        severe(Arrays.stream(messages).map(StackTraceElement::toString).collect(Collectors.joining("\n")));
     }
 
     /**
@@ -294,37 +338,6 @@ public class PluginUtils {
 
     public boolean isInWorld(Location loc, World world) {
         return loc.getWorld().getName().equalsIgnoreCase(world.getName());
-    }
-
-    /**
-     * Creates a completely empty world with a glass block at [0,64,0]
-     * @param name World name
-     * @return Returns the created world
-     */
-    @Deprecated(forRemoval = true)
-    public World createVoidWorld(String name) {
-        WorldCreator creator = new WorldCreator(name);
-        creator.generator(new VoidGenerator());
-        creator.createWorld();
-
-        World world = Bukkit.getWorld(name);
-
-        if (world != null) {
-            world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
-            world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
-            world.setGameRule(GameRule.DO_MOB_SPAWNING, false);
-            world.setGameRule(GameRule.DO_PATROL_SPAWNING, false);
-            world.setGameRule(GameRule.DO_TRADER_SPAWNING, false);
-            world.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
-            world.setGameRule(GameRule.SPAWN_CHUNK_RADIUS, 0);
-            world.setGameRule(GameRule.SPECTATORS_GENERATE_CHUNKS, false);
-            world.setAutoSave(false);
-
-            return world;
-        } else {
-            severe("The world '" + name + "' was not loaded.");
-            return null;
-        }
     }
 
     /**
