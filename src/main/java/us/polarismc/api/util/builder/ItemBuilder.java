@@ -1,21 +1,29 @@
 package us.polarismc.api.util.builder;
 
+import com.destroystokyo.paper.profile.ProfileProperty;
 import io.papermc.paper.datacomponent.DataComponentBuilder;
 import io.papermc.paper.datacomponent.DataComponentType;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.*;
 import io.papermc.paper.datacomponent.item.consumable.ConsumeEffect;
+import io.papermc.paper.datacomponent.item.consumable.ItemUseAnimation;
+import io.papermc.paper.registry.RegistryKey;
+import io.papermc.paper.registry.TypedKey;
+import io.papermc.paper.registry.set.RegistryKeySet;
+import io.papermc.paper.registry.set.RegistrySet;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.Color;
-import org.bukkit.FireworkEffect;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.*;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
+import org.jetbrains.annotations.NotNull;
 import us.polarismc.api.util.PluginUtils;
 
 import java.util.*;
@@ -42,8 +50,6 @@ public class ItemBuilder {
     private final ItemStack item;
     private final PluginUtils utils;
     private final Player player;
-
-    //TODO - TEST THIS
 
     /**
      * Creates a new ItemBuilder instance.
@@ -160,7 +166,7 @@ public class ItemBuilder {
 
     private Component format(String input) {
         Component component = player != null ? utils.chat(input, player) : utils.chat(input);
-        return component.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.NOT_SET);
+        return component.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
     }
 
     /**
@@ -354,6 +360,11 @@ public class ItemBuilder {
         return this;
     }
 
+    public ItemBuilder profileTexture(String texture) {
+        item.setData(DataComponentTypes.PROFILE, ResolvableProfile.resolvableProfile().addProperty(new ProfileProperty("textures", texture)));
+        return this;
+    }
+
     /**
      * Sets the color of a dyeable item (like leather armor).
      *
@@ -394,7 +405,6 @@ public class ItemBuilder {
      * @return This builder instance for chaining
      */
     public ItemBuilder potionType(PotionType type) {
-        //TODO - no funciona con custom names por algún motivo
         item.setData(DataComponentTypes.POTION_CONTENTS, getPotionBuilder().potion(type).build());
         return this;
     }
@@ -517,8 +527,169 @@ public class ItemBuilder {
         return builder;
     }
 
-    public ItemBuilder edible(ConsumeEffect effect) {
-        item.setData(DataComponentTypes.CONSUMABLE, Consumable.consumable().addEffect(effect).build());
+    public ItemBuilder chargedProjectiles(ItemStack arrow) {
+        item.setData(DataComponentTypes.CHARGED_PROJECTILES, ChargedProjectiles.chargedProjectiles(List.of(arrow)));
+        return this;
+    }
+
+    /**
+     * Sets the consume seconds for the consumable item.
+     *
+     * @param seconds The time in seconds to consume the item
+     * @return This builder instance for chaining
+     */
+    public ItemBuilder consumeSeconds(float seconds) {
+        item.setData(DataComponentTypes.CONSUMABLE, getConsumableBuilder().consumeSeconds(seconds).build());
+        return this;
+    }
+
+    /**
+     * Sets the animation type for the consumable item.
+     *
+     * @param animation The consume animation type
+     * @return This builder instance for chaining
+     */
+    public ItemBuilder consumeAnimation(ItemUseAnimation animation) {
+        item.setData(DataComponentTypes.CONSUMABLE, getConsumableBuilder().animation(animation).build());
+        return this;
+    }
+
+    /**
+     * Sets the sound to be played when consuming.
+     *
+     * @param sound The played sound
+     * @return This builder instance for chaining
+     */
+    public ItemBuilder consumingSound(Key sound) {
+        item.setData(DataComponentTypes.CONSUMABLE, getConsumableBuilder().sound(sound).build());
+        return this;
+    }
+
+    /**
+     * Sets whether the item has consume particles.
+     *
+     * @param hasParticles Whether to show consume particles
+     * @return This builder instance for chaining
+     */
+    public ItemBuilder consumeParticles(boolean hasParticles) {
+        item.setData(DataComponentTypes.CONSUMABLE, getConsumableBuilder().hasConsumeParticles(hasParticles).build());
+        return this;
+    }
+
+    /**
+     * Adds consume effects to the consumable item.
+     *
+     * @param effects The consume effects to add
+     * @return This builder instance for chaining
+     */
+    public ItemBuilder addConsumeEffects(ConsumeEffect... effects) {
+        item.setData(DataComponentTypes.CONSUMABLE, getConsumableBuilder().addEffects(List.of(effects)).build());
+        return this;
+    }
+
+    public ItemBuilder consumeApplyEffects(PotionEffect... effects) {
+        return consumeApplyEffects(1, effects);
+    }
+
+    public ItemBuilder consumeApplyEffects(int probability, PotionEffect... effects) {
+        item.setData(DataComponentTypes.CONSUMABLE, getConsumableBuilder().addEffect(ConsumeEffect.applyStatusEffects(List.of(effects), probability)).build());
+        return this;
+    }
+
+    /**
+     * Adds specific effects to remove when consuming.
+     *
+     * @param effects The effect types to remove
+     * @return This builder instance for chaining
+     */
+    public ItemBuilder consumeRemoveEffects(PotionEffectType... effects) {
+        RegistryKeySet<@NotNull PotionEffectType> effectSet = RegistrySet.keySet(RegistryKey.MOB_EFFECT, Arrays.stream(effects)
+                .map(effect -> TypedKey.create(RegistryKey.MOB_EFFECT, effect.getKey())).toList());
+        item.setData(DataComponentTypes.CONSUMABLE, getConsumableBuilder().addEffect(ConsumeEffect.removeEffects(effectSet)).build());
+        return this;
+    }
+
+    /**
+     * Sets whether to clear all effects when consuming.
+     *
+     * @return This builder instance for chaining
+     */
+    public ItemBuilder consumeClearAllEffects() {
+        item.setData(DataComponentTypes.CONSUMABLE, getConsumableBuilder().addEffect(ConsumeEffect.clearAllStatusEffects()).build());
+        return this;
+    }
+
+    /**
+     * Sets the teleport randomly range for the consumable item.
+     *
+     * @param range The teleport range
+     * @return This builder instance for chaining
+     */
+    public ItemBuilder consumeTeleportRandomly(float range) {
+        item.setData(DataComponentTypes.CONSUMABLE, getConsumableBuilder().addEffect(ConsumeEffect.teleportRandomlyEffect(range)).build());
+        return this;
+    }
+
+    public ItemBuilder consumePlaySound(Key key) {
+        item.setData(DataComponentTypes.CONSUMABLE, getConsumableBuilder().addEffect(ConsumeEffect.playSoundConsumeEffect(key)).build());
+        return this;
+    }
+
+    /**
+     * Helper method to get or create a consumable builder with existing data.
+     *
+     * @return A consumable builder with any existing consumable data
+     */
+    private Consumable.Builder getConsumableBuilder() {
+        Consumable original = item.getData(DataComponentTypes.CONSUMABLE);
+        Consumable.Builder builder = Consumable.consumable();
+
+        if (original == null) return builder;
+
+        builder.consumeSeconds(original.consumeSeconds());
+        builder.animation(original.animation());
+        builder.sound(original.sound());
+        builder.hasConsumeParticles(original.hasConsumeParticles());
+        if (!original.consumeEffects().isEmpty()) builder.addEffects(original.consumeEffects());
+
+        return builder;
+    }
+
+    public ItemBuilder useCooldown(int seconds) {
+        item.setData(DataComponentTypes.USE_COOLDOWN, UseCooldown.useCooldown(seconds));
+        return this;
+    }
+
+    public ItemBuilder useCooldown(int seconds, String key) {
+        item.setData(DataComponentTypes.USE_COOLDOWN, UseCooldown.useCooldown(seconds).cooldownGroup(new NamespacedKey(utils.plugin.getName(), key)).build());
+        return this;
+    }
+    public ItemBuilder useCooldown(int seconds, String identifier, String key) {
+        item.setData(DataComponentTypes.USE_COOLDOWN, UseCooldown.useCooldown(seconds).cooldownGroup(new NamespacedKey(identifier, key)).build());
+        return this;
+    }
+
+    public ItemBuilder rarity(ItemRarity rarity) {
+        item.setData(DataComponentTypes.RARITY, rarity);
+        return this;
+    }
+
+    public ItemBuilder food(int nutrition, float saturation, boolean canAlwaysEat) {
+        item.setData(DataComponentTypes.FOOD, FoodProperties.food().nutrition(nutrition).saturation(saturation).canAlwaysEat(canAlwaysEat).build());
+        return this;
+    }
+
+    public ItemBuilder food(int nutrition, float saturation) {
+        return food(nutrition, saturation, false);
+    }
+
+    public ItemBuilder model(String namespace, String key) {
+        item.setData(DataComponentTypes.ITEM_MODEL, new NamespacedKey(namespace, key));
+        return this;
+    }
+
+    public ItemBuilder model(Material material) {
+        item.setData(DataComponentTypes.ITEM_MODEL, Objects.requireNonNull(material.getKey()));
         return this;
     }
 

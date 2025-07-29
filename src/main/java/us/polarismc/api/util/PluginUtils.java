@@ -1,6 +1,9 @@
 package us.polarismc.api.util;
 
+import io.papermc.paper.datacomponent.item.consumable.ItemUseAnimation;
 import io.papermc.paper.registry.TypedKey;
+import io.papermc.paper.registry.keys.SoundEventKeys;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -8,11 +11,16 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.adventure.title.Title;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import us.polarismc.api.managers.LangManager;
 import us.polarismc.api.managers.StartupManager;
 import us.polarismc.api.util.builder.ItemBuilder;
@@ -130,7 +138,7 @@ public class PluginUtils {
         message(receiver, true, sound, messages);
     }
 
-    public void message(CommandSender receiver, TypedKey<Sound> soundKey, String... messages) {
+    public void message(CommandSender receiver, Key soundKey, String... messages) {
         message(receiver, true, Sound.sound(soundKey, Sound.Source.MASTER, 10f, 1f), messages);
     }
 
@@ -148,6 +156,10 @@ public class PluginUtils {
 
     public void message(Collection<? extends CommandSender> receivers, Sound sound, String... messages) {
         message(receivers, true, sound, messages);
+    }
+
+    public void message(Collection<? extends CommandSender> receivers, Key soundKey, String... messages) {
+        message(receivers, true, Sound.sound(soundKey, Sound.Source.MASTER, 10f, 1f), messages);
     }
 
     public void message(Collection<? extends CommandSender> receivers, boolean usePrefix, Sound sound, String... messages) {
@@ -205,6 +217,41 @@ public class PluginUtils {
     //endregion
     //endregion
 
+    /**
+     * Fully restores a player's state between rounds.
+     * Resets inventory, health, food level, potion effects, and other combat-related states.
+     *
+     * @param player The player to restore
+     */
+    public void restorePlayer(Player player) {
+        setMaxHealth(player);
+        player.setFoodLevel(20);
+        player.setSaturation(5.0f);
+        player.getActivePotionEffects().forEach(potionEffect -> player.removePotionEffect(potionEffect.getType()));
+        player.setLevel(0);
+        player.setExp(0.0f);
+        player.setFireTicks(0);
+        player.setArrowsInBody(0);
+        player.setItemOnCursor(new ItemStack(Material.AIR));
+        player.setInvulnerable(false);
+    }
+
+    public void title(List<Player> players, String title) {
+        players.forEach(player -> title(player, title));
+    }
+
+    public void title(List<Player> players, String title, String subtitle) {
+        players.forEach(player -> title(player, title, subtitle));
+    }
+
+    public void title(List<Player> players, String title, String subtitle, Sound sound) {
+        players.forEach(player -> title(player, title, subtitle, sound));
+    }
+
+    public void title(Player player, String title) {
+        title(player, title, "", null);
+    }
+
     public void title(Player player, String title, String subtitle) {
         title(player, title, subtitle, null);
     }
@@ -214,6 +261,31 @@ public class PluginUtils {
         if (sound != null) {
             player.playSound(sound);
         }
+    }
+
+    public String clickableCommand(String command) {
+        return "<click:run_command:" + command + ">" + command + "</click>";
+    }
+
+    public ItemStack marlowGHead() {
+        return marlowGHead(1);
+    }
+
+    public ItemStack marlowGHead(int amount) {
+        return ib(Material.GOLDEN_APPLE, amount)
+                .name("Golden Head")
+                .lore("<blue><lang:effect.minecraft.absorption> (02:00)", "<blue><lang:effect.minecraft.regeneration> III (00:05)", "<gray>Cooldown:<yellow> 10 seconds")
+                .rarity(ItemRarity.RARE)
+                .food(4, 9.6f, true)
+                .useCooldown(10, "ghead")
+                .consumeSeconds(1)
+                .consumeAnimation(ItemUseAnimation.EAT)
+                .consumingSound(SoundEventKeys.ENTITY_GENERIC_EAT)
+                .consumeParticles(false)
+                .consumeApplyEffects(new PotionEffect(PotionEffectType.ABSORPTION, 2400, 0), new PotionEffect(PotionEffectType.REGENERATION, 100, 2))
+                .profileTexture("e3RleHR1cmVzOntTS0lOOnt1cmw6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNGU1YjMwOGExZWI1Y2FhOTdlNWZiMjU3YjJkOWUxODYxZmRlZjE1MTYxZDUwYTFmNDZmMjIzMTVmNDkyOSJ9fX0=")
+                .model(Material.PLAYER_HEAD)
+                .build();
     }
 
     //region [Methods of 'log']
@@ -336,9 +408,103 @@ public class PluginUtils {
                 z >= minZ && z <= maxZ;
     }
 
+    /**
+     * Determines if a location is inside a specified area (only X and Z axes)
+     * @param loc Location to check
+     * @param cornerOne First corner of the specified area
+     * @param cornerTwo Second corner of the specified area
+     * @return True if the location is within the area in X and Z, false otherwise
+     */
+    public boolean isInsideIgnoreY(Location loc, Location cornerOne, Location cornerTwo) {
+        if (cornerOne == null || cornerTwo == null) return false;
+
+        double minX = Math.min(cornerOne.getX(), cornerTwo.getX());
+        double maxX = Math.max(cornerOne.getX(), cornerTwo.getX());
+        double minZ = Math.min(cornerOne.getZ(), cornerTwo.getZ());
+        double maxZ = Math.max(cornerOne.getZ(), cornerTwo.getZ());
+
+        double x = loc.getX();
+        double z = loc.getZ();
+
+        return x >= minX && x <= maxX &&
+                z >= minZ && z <= maxZ;
+    }
+
+
     public boolean isInWorld(Location loc, World world) {
         return loc.getWorld().getName().equalsIgnoreCase(world.getName());
     }
+
+    public double calculateSafeRadius(Location corner1, Location corner2) {
+        double minX = Math.min(corner1.getX(), corner2.getX());
+        double maxX = Math.max(corner1.getX(), corner2.getX());
+        double minZ = Math.min(corner1.getZ(), corner2.getZ());
+        double maxZ = Math.max(corner1.getZ(), corner2.getZ());
+
+        return Math.min(maxX - minX, maxZ - minZ) * 0.4;
+    }
+
+    public Location getRandomLocationNear(Location center, double maxOffset) {
+        Random random = new Random();
+        double offsetX = (random.nextDouble() - 0.5) * 2 * maxOffset;
+        double offsetZ = (random.nextDouble() - 0.5) * 2 * maxOffset;
+
+        return center.clone().add(offsetX, 0, offsetZ);
+    }
+
+    public List<Location> getPositionsAroundCenter(int positionCount, Location center, double radius) {
+        List<Location> positions = new ArrayList<>();
+        World world = center.getWorld();
+
+        for (int i = 0; i < positionCount; i++) {
+            double angle = 2 * Math.PI * i / positionCount + Math.PI / 2;
+            double x = center.getX() + radius * Math.cos(angle);
+            double z = center.getZ() + radius * Math.sin(angle);
+            Location safeLoc = findSafeGroundLocation(world, x, z, world.getMinHeight(), world.getMaxHeight());
+            positions.add(Objects.requireNonNullElseGet(safeLoc, () -> new Location(world, x, center.getY(), z)));
+        }
+
+        return positions;
+    }
+
+    public Location getRandomLocationAroundCenter(Location center, double maxRadius, int attempts) {
+        World world = center.getWorld();
+        Random random = new Random();
+
+        for (int i = 0; i < attempts; i++) {
+            double angle = random.nextDouble() * 2 * Math.PI;
+            double distance = random.nextDouble() * maxRadius;
+
+            double x = center.getX() + distance * Math.cos(angle);
+            double z = center.getZ() + distance * Math.sin(angle);
+
+            Location safeLoc = findSafeGroundLocation(world, x, z, world.getMinHeight(), world.getMaxHeight());
+            if (safeLoc != null) {
+                return safeLoc;
+            }
+        }
+
+        return center.clone();
+    }
+
+    public Location getRandomLocationAroundCenter(Location center, double maxRadius) {
+        return getRandomLocationAroundCenter(center, maxRadius, 30);
+    }
+
+    public Location findSafeGroundLocation(World world, double x, double z, int minY, int maxY) {
+        for (int y = minY; y <= maxY - 2; y++) {
+            Block block = world.getBlockAt((int) x, y, (int) z);
+            Block above = block.getRelative(BlockFace.UP);
+            Block above2 = above.getRelative(BlockFace.UP);
+
+            if (block.getType().isSolid() && above.getType() == Material.AIR && above2.getType() == Material.AIR) {
+                return new Location(world, x + 0.5, y + 1, z + 0.5);
+            }
+        }
+
+        return null;
+    }
+
 
     /**
      * Executes a task ({@link Runnable}) after a specified time.
