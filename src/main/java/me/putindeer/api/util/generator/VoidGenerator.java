@@ -1,10 +1,10 @@
-package us.polarismc.api.util.generator;
+package me.putindeer.api.util.generator;
 
 import org.bukkit.Material;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.generator.WorldInfo;
 import org.bukkit.block.data.BlockData;
-import us.polarismc.api.util.builder.WorldBuilder;
+import me.putindeer.api.util.builder.WorldBuilder;
 
 import org.jetbrains.annotations.NotNull;
 

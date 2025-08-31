@@ -1,18 +1,28 @@
-package us.polarismc.api.util;
+package me.putindeer.api.util;
 
+import io.papermc.paper.datacomponent.item.consumable.ItemUseAnimation;
+import io.papermc.paper.registry.TypedKey;
+import io.papermc.paper.registry.keys.SoundEventKeys;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import net.kyori.adventure.title.Title;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
-import us.polarismc.api.managers.StartupManager;
-import us.polarismc.api.util.generator.VoidGenerator;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import me.putindeer.api.util.builder.ItemBuilder;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -20,13 +30,11 @@ import java.util.stream.Stream;
 
 @SuppressWarnings("unused")
 public class PluginUtils {
-    private final JavaPlugin plugin;
+    public final JavaPlugin plugin;
 
     public PluginUtils(JavaPlugin plugin, String prefix) {
         this.plugin = plugin;
         this.prefix = chat(prefix);
-
-        StartupManager.registerPlugin(plugin, this);
     }
 
     /**
@@ -96,6 +104,9 @@ public class PluginUtils {
     public void broadcast(Sound sound, String... messages) {
         broadcast(true, sound, messages);
     }
+    public void broadcast(TypedKey<@NotNull Sound> soundKey, String... messages) {
+        broadcast(true, Sound.sound(soundKey, Sound.Source.MASTER, 10f, 1f), messages);
+    }
 
     public void broadcast(boolean prefix, Sound sound, String... messages) {
         message(Stream.concat(Bukkit.getOnlinePlayers().stream().map(p -> (CommandSender) p), Stream.of(Bukkit.getConsoleSender())).collect(Collectors.toList()), prefix, sound, messages);
@@ -107,6 +118,10 @@ public class PluginUtils {
 
     public void message(CommandSender receiver, Sound sound, String... messages) {
         message(receiver, true, sound, messages);
+    }
+
+    public void message(CommandSender receiver, Key soundKey, String... messages) {
+        message(receiver, true, Sound.sound(soundKey, Sound.Source.MASTER, 10f, 1f), messages);
     }
 
     public void message(CommandSender receiver, boolean prefix, String... messages) {
@@ -125,12 +140,16 @@ public class PluginUtils {
         message(receivers, true, sound, messages);
     }
 
-    public void message(Collection<? extends CommandSender> receivers, boolean prefix, Sound sound, String... messages) {
-        receivers.forEach(receiver -> message(receiver, prefix, sound, Arrays.stream(messages).map(this::chat).toArray(Component[]::new)));
+    public void message(Collection<? extends CommandSender> receivers, Key soundKey, String... messages) {
+        message(receivers, true, Sound.sound(soundKey, Sound.Source.MASTER, 10f, 1f), messages);
     }
 
-    public void message(CommandSender receiver, boolean prefix, Sound sound, String... messages) {
-        message(receiver, prefix, sound, Arrays.stream(messages).map(this::chat).toArray(Component[]::new));
+    public void message(Collection<? extends CommandSender> receivers, boolean usePrefix, Sound sound, String... messages) {
+        receivers.forEach(r -> message(r, usePrefix, sound, messages));
+    }
+
+    public void message(CommandSender receiver, boolean usePrefix, Sound sound, String... messages) {
+        message(receiver, usePrefix, sound, Arrays.stream(messages).map(this::chat).toArray(Component[]::new));
     }
     //endregion
     //region [Component methods]
@@ -180,6 +199,111 @@ public class PluginUtils {
     //endregion
     //endregion
 
+    /**
+     * Fully restores a player's state between rounds.
+     * Resets inventory, health, food level, potion effects, and other combat-related states.
+     *
+     * @param player The player to restore
+     */
+    public void restorePlayer(Player player) {
+        setMaxHealth(player);
+        player.setFoodLevel(20);
+        player.setSaturation(5.0f);
+        player.getActivePotionEffects().forEach(potionEffect -> player.removePotionEffect(potionEffect.getType()));
+        player.setLevel(0);
+        player.setExp(0.0f);
+        player.setFireTicks(0);
+        player.setArrowsInBody(0);
+        player.setItemOnCursor(new ItemStack(Material.AIR));
+        player.setInvulnerable(false);
+    }
+
+    public void title(List<Player> players, String title) {
+        players.forEach(player -> title(player, title));
+    }
+
+    public void title(List<Player> players, String title, String subtitle) {
+        players.forEach(player -> title(player, title, subtitle));
+    }
+
+    public void title(List<Player> players, String title, String subtitle, Sound sound) {
+        players.forEach(player -> title(player, title, subtitle, sound));
+    }
+
+    public void title(Player player, String title) {
+        title(player, title, "", null);
+    }
+
+    public void title(Player player, String title, String subtitle) {
+        title(player, title, subtitle, null);
+    }
+
+    public void title(Player player, String title, String subtitle, Sound sound) {
+        player.showTitle(Title.title(chat(title), chat(subtitle)));
+        if (sound != null) {
+            player.playSound(sound);
+        }
+    }
+
+    public String clickableCommand(String command) {
+        return "<click:run_command:" + command + ">" + command + "</click>";
+    }
+
+    public ItemBuilder goldenHeadTexture() {
+        return goldenHeadTexture(Material.PLAYER_HEAD, 1);
+    }
+
+    public ItemBuilder goldenHeadTexture(int amount) {
+        return goldenHeadTexture(Material.PLAYER_HEAD, amount);
+    }
+
+    public ItemBuilder goldenHeadTexture(Material material) {
+        return goldenHeadTexture(material, 1);
+    }
+
+    public ItemBuilder goldenHeadTexture(Material material, int amount) {
+        return ib(material, amount).profileTexture("e3RleHR1cmVzOntTS0lOOnt1cmw6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNGU1YjMwOGExZWI1Y2FhOTdlNWZiMjU3YjJkOWUxODYxZmRlZjE1MTYxZDUwYTFmNDZmMjIzMTVmNDkyOSJ9fX0=")
+                .model(Material.PLAYER_HEAD);
+    }
+
+    public ItemStack marlowGHead() {
+        return marlowGHead(1);
+    }
+
+    public ItemStack marlowGHead(int amount) {
+        return goldenHeadTexture(Material.PLAYER_HEAD, amount)
+                .name("Golden Head")
+                .lore("<blue><lang:effect.minecraft.absorption> (02:00)", "<blue><lang:effect.minecraft.regeneration> III (00:05)", "<gray>Cooldown:<yellow> 10 seconds")
+                .rarity(ItemRarity.RARE)
+                .food(4, 9.6f, true)
+                .useCooldown(10, "ghead")
+                .consumeSeconds(1)
+                .consumeAnimation(ItemUseAnimation.EAT)
+                .consumingSound(SoundEventKeys.ENTITY_GENERIC_EAT)
+                .consumeParticles(false)
+                .consumeApplyEffects(new PotionEffect(PotionEffectType.ABSORPTION, 2400, 0), new PotionEffect(PotionEffectType.REGENERATION, 100, 2))
+                .build();
+    }
+
+    public String getTimeAgo(long timestamp) {
+        long diff = System.currentTimeMillis() - timestamp;
+
+        long seconds = diff / 1000;
+        long minutes = seconds / 60;
+        long hours = minutes / 60;
+        long days = hours / 24;
+
+        if (days > 0) {
+            return days == 1 ? "1 day ago" : days + " days ago";
+        } else if (hours > 0) {
+            return hours == 1 ? "1 hour ago" : hours + " hours ago";
+        } else if (minutes > 0) {
+            return minutes == 1 ? "1 minute ago" : minutes + " minutes ago";
+        } else {
+            return seconds == 1 ? "1 second ago" : seconds + " seconds ago";
+        }
+    }
+
     //region [Methods of 'log']
     /**
      * Sends an informative message to the server console
@@ -215,6 +339,30 @@ public class PluginUtils {
      * Sends an informative message to the server console
      * @param messages The messages to be sent
      */
+    public void log(StackTraceElement... messages) {
+        log(Arrays.stream(messages).map(StackTraceElement::toString).collect(Collectors.joining("\n")));
+    }
+
+    /**
+     * Sends a warning message to the server console
+     * @param messages The warning messages to be sent
+     */
+    public void warning(StackTraceElement... messages) {
+        warning(Arrays.stream(messages).map(StackTraceElement::toString).collect(Collectors.joining("\n")));
+    }
+
+    /**
+     * Sends a severe error message to the server console
+     * @param messages The error messages to be sent
+     */
+    public void severe(StackTraceElement... messages) {
+        severe(Arrays.stream(messages).map(StackTraceElement::toString).collect(Collectors.joining("\n")));
+    }
+
+    /**
+     * Sends an informative message to the server console
+     * @param messages The messages to be sent
+     */
     public void log(Component... messages) {
         for (Component message : messages) {
             plugin.getServer().getConsoleSender().sendMessage(chat("<gray>[<aqua>" + plugin.getName() + "<gray>] <reset>").append(message));
@@ -241,6 +389,10 @@ public class PluginUtils {
         }
     }
     //endregion
+
+    public void actionBar(Player player, String message) {
+        player.sendActionBar(chat(message));
+    }
 
     /**
      * Restores the player's health to maximum
@@ -276,40 +428,103 @@ public class PluginUtils {
                 z >= minZ && z <= maxZ;
     }
 
+    /**
+     * Determines if a location is inside a specified area (only X and Z axes)
+     * @param loc Location to check
+     * @param cornerOne First corner of the specified area
+     * @param cornerTwo Second corner of the specified area
+     * @return True if the location is within the area in X and Z, false otherwise
+     */
+    public boolean isInsideIgnoreY(Location loc, Location cornerOne, Location cornerTwo) {
+        if (cornerOne == null || cornerTwo == null) return false;
+
+        double minX = Math.min(cornerOne.getX(), cornerTwo.getX());
+        double maxX = Math.max(cornerOne.getX(), cornerTwo.getX());
+        double minZ = Math.min(cornerOne.getZ(), cornerTwo.getZ());
+        double maxZ = Math.max(cornerOne.getZ(), cornerTwo.getZ());
+
+        double x = loc.getX();
+        double z = loc.getZ();
+
+        return x >= minX && x <= maxX &&
+                z >= minZ && z <= maxZ;
+    }
+
+
     public boolean isInWorld(Location loc, World world) {
         return loc.getWorld().getName().equalsIgnoreCase(world.getName());
     }
 
-    /**
-     * Creates a completely empty world with a glass block at [0,64,0]
-     * @param name World name
-     * @return Returns the created world
-     */
-    @Deprecated(forRemoval = true)
-    public World createVoidWorld(String name) {
-        WorldCreator creator = new WorldCreator(name);
-        creator.generator(new VoidGenerator());
-        creator.createWorld();
+    public double calculateSafeRadius(Location corner1, Location corner2) {
+        double minX = Math.min(corner1.getX(), corner2.getX());
+        double maxX = Math.max(corner1.getX(), corner2.getX());
+        double minZ = Math.min(corner1.getZ(), corner2.getZ());
+        double maxZ = Math.max(corner1.getZ(), corner2.getZ());
 
-        World world = Bukkit.getWorld(name);
-
-        if (world != null) {
-            world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
-            world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
-            world.setGameRule(GameRule.DO_MOB_SPAWNING, false);
-            world.setGameRule(GameRule.DO_PATROL_SPAWNING, false);
-            world.setGameRule(GameRule.DO_TRADER_SPAWNING, false);
-            world.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
-            world.setGameRule(GameRule.SPAWN_CHUNK_RADIUS, 0);
-            world.setGameRule(GameRule.SPECTATORS_GENERATE_CHUNKS, false);
-            world.setAutoSave(false);
-
-            return world;
-        } else {
-            severe("The world '" + name + "' was not loaded.");
-            return null;
-        }
+        return Math.min(maxX - minX, maxZ - minZ) * 0.4;
     }
+
+    public Location getRandomLocationNear(Location center, double maxOffset) {
+        Random random = new Random();
+        double offsetX = (random.nextDouble() - 0.5) * 2 * maxOffset;
+        double offsetZ = (random.nextDouble() - 0.5) * 2 * maxOffset;
+
+        return center.clone().add(offsetX, 0, offsetZ);
+    }
+
+    public List<Location> getPositionsAroundCenter(int positionCount, Location center, double radius) {
+        List<Location> positions = new ArrayList<>();
+        World world = center.getWorld();
+
+        for (int i = 0; i < positionCount; i++) {
+            double angle = 2 * Math.PI * i / positionCount + Math.PI / 2;
+            double x = center.getX() + radius * Math.cos(angle);
+            double z = center.getZ() + radius * Math.sin(angle);
+            Location safeLoc = findSafeGroundLocation(world, x, z, world.getMinHeight(), world.getMaxHeight());
+            positions.add(Objects.requireNonNullElseGet(safeLoc, () -> new Location(world, x, center.getY(), z)));
+        }
+
+        return positions;
+    }
+
+    public Location getRandomLocationAroundCenter(Location center, double maxRadius, int attempts) {
+        World world = center.getWorld();
+        Random random = new Random();
+
+        for (int i = 0; i < attempts; i++) {
+            double angle = random.nextDouble() * 2 * Math.PI;
+            double distance = random.nextDouble() * maxRadius;
+
+            double x = center.getX() + distance * Math.cos(angle);
+            double z = center.getZ() + distance * Math.sin(angle);
+
+            Location safeLoc = findSafeGroundLocation(world, x, z, world.getMinHeight(), world.getMaxHeight());
+            if (safeLoc != null) {
+                return safeLoc;
+            }
+        }
+
+        return center.clone();
+    }
+
+    public Location getRandomLocationAroundCenter(Location center, double maxRadius) {
+        return getRandomLocationAroundCenter(center, maxRadius, 30);
+    }
+
+    public Location findSafeGroundLocation(World world, double x, double z, int minY, int maxY) {
+        for (int y = minY; y <= maxY - 2; y++) {
+            Block block = world.getBlockAt((int) x, y, (int) z);
+            Block above = block.getRelative(BlockFace.UP);
+            Block above2 = above.getRelative(BlockFace.UP);
+
+            if (block.getType().isSolid() && above.getType() == Material.AIR && above2.getType() == Material.AIR) {
+                return new Location(world, x + 0.5, y + 1, z + 0.5);
+            }
+        }
+
+        return null;
+    }
+
 
     /**
      * Executes a task ({@link Runnable}) after a specified time.
@@ -465,6 +680,46 @@ public class PluginUtils {
 
     public Component formatHourComponent(int time) {
         return formatComponentTime(time, false, false, true);
+    }
+    //endregion
+
+    //region [ItemBuilder methods]
+    /**
+     * Constructs an ItemBuilder with the specified material and amount of 1.
+     *
+     * @param mat The {@link Material} to use for the item
+     */
+    public ItemBuilder ib(Material mat) {
+        return ib(new ItemStack(mat), 1);
+    }
+
+    /**
+     * Constructs an ItemBuilder with the specified material and amount.
+     *
+     * @param mat    The {@link Material} to use for the item
+     * @param amount The amount of items in the stack
+     */
+    public ItemBuilder ib(Material mat, int amount) {
+        return ib(new ItemStack(mat), amount);
+    }
+
+    /**
+     * Constructs an ItemBuilder with an existing ItemStack and amount of 1.
+     *
+     * @param item The base {@link ItemStack} to modify
+     */
+    public ItemBuilder ib(ItemStack item) {
+        return new ItemBuilder(item,this);
+    }
+
+    /**
+     * Constructs an ItemBuilder with an existing ItemStack and specified amount.
+     *
+     * @param item   The base {@link ItemStack} to modify
+     * @param amount The amount of items in the stack
+     */
+    public ItemBuilder ib(ItemStack item, int amount) {
+        return new ItemBuilder(item, amount, this);
     }
     //endregion
 }
