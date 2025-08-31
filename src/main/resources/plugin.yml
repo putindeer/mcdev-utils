@@ -1,7 +1,7 @@
-name: polaris-api
+name: mcdev-utils
 version: ${project.version}
-main: us.polarismc.api.PolarisAPI
+main: me.putindeer.api.MCDevUtils
 api-version: '1.21'
 authors: [putindeer]
 description: API used for all kind of projects related to Paper plugins.
-website: https://github.com/polaris-mc/polaris-api
+website: https://github.com/putindeer/mcdev-utils

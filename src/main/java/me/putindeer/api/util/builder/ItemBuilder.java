@@ -1,4 +1,4 @@
-package us.polarismc.api.util.builder;
+package me.putindeer.api.util.builder;
 
 import com.destroystokyo.paper.profile.ProfileProperty;
 import io.papermc.paper.datacomponent.DataComponentBuilder;
@@ -17,14 +17,13 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.*;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 import org.jetbrains.annotations.NotNull;
-import us.polarismc.api.util.PluginUtils;
+import me.putindeer.api.util.PluginUtils;
 
 import java.util.*;
 
@@ -49,21 +48,29 @@ import java.util.*;
 public class ItemBuilder {
     private final ItemStack item;
     private final PluginUtils utils;
-    private final Player player;
+
+    /**
+     * Creates a new ItemBuilder instance.
+     *
+     * @param item   The base ItemStack to modify
+     * @param utils  PluginUtils instance for chat formatting and other utilities
+     */
+    public ItemBuilder(ItemStack item, PluginUtils utils) {
+        this.item = item;
+        this.utils = utils;
+    }
 
     /**
      * Creates a new ItemBuilder instance.
      *
      * @param item   The base ItemStack to modify
      * @param amount The amount of items in the stack
-     * @param player The player for whom context-specific formatting will be applied
      * @param utils  PluginUtils instance for chat formatting and other utilities
      */
-    public ItemBuilder(ItemStack item, int amount, Player player, PluginUtils utils) {
+    public ItemBuilder(ItemStack item, int amount, PluginUtils utils) {
         this.item = item;
         this.item.setAmount(amount);
         this.utils = utils;
-        this.player = player;
     }
 
     /**
@@ -165,7 +172,7 @@ public class ItemBuilder {
     }
 
     private Component format(String input) {
-        Component component = player != null ? utils.chat(input, player) : utils.chat(input);
+        Component component = utils.chat(input);
         return component.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
     }
 
@@ -355,7 +362,7 @@ public class ItemBuilder {
      * @param player The player to set as the owner
      * @return This builder instance for chaining
      */
-    public ItemBuilder owner(OfflinePlayer player) {
+    public ItemBuilder profile(OfflinePlayer player) {
         item.setData(DataComponentTypes.PROFILE, ResolvableProfile.resolvableProfile(player.getPlayerProfile()));
         return this;
     }
@@ -693,6 +700,16 @@ public class ItemBuilder {
         return this;
     }
 
+    public ItemBuilder model(Key key) {
+        item.setData(DataComponentTypes.ITEM_MODEL, key);
+        return this;
+    }
+
+    public ItemBuilder maxStackSize(int stackSize) {
+        item.setData(DataComponentTypes.MAX_STACK_SIZE, stackSize);
+        return this;
+    }
+
     /**
      * Sets a non-valued data component for the item.
      *
@@ -713,7 +730,7 @@ public class ItemBuilder {
      * @param <T>   The type parameter of the data component and value
      * @return This builder instance for chaining
      */
-    public <T> ItemBuilder setDataComponent(DataComponentType.Valued<T> type, T value) {
+    public <T> ItemBuilder setDataComponent(DataComponentType.Valued<@NotNull T> type, T value) {
         item.setData(type, value);
         return this;
     }
@@ -726,7 +743,7 @@ public class ItemBuilder {
      * @param <T>     The type parameter of the data component and builder result
      * @return This builder instance for chaining
      */
-    public <T> ItemBuilder setDataComponent(DataComponentType.Valued<T> type, DataComponentBuilder<T> builder) {
+    public <T> ItemBuilder setDataComponent(DataComponentType.Valued<@NotNull T> type, DataComponentBuilder<@NotNull T> builder) {
         item.setData(type, builder);
         return this;
     }

@@ -1,10 +1,9 @@
-package us.polarismc.api.util.builder;
+package me.putindeer.api.util.builder;
 
 import org.bukkit.*;
 import org.bukkit.WorldCreator;
 import org.bukkit.WorldType;
 import org.bukkit.generator.ChunkGenerator;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.util.HashMap;

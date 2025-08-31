@@ -1,4 +1,4 @@
-package us.polarismc.api.util;
+package me.putindeer.api.util;
 
 import io.papermc.paper.datacomponent.item.consumable.ItemUseAnimation;
 import io.papermc.paper.registry.TypedKey;
@@ -21,9 +21,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import us.polarismc.api.managers.LangManager;
-import us.polarismc.api.managers.StartupManager;
-import us.polarismc.api.util.builder.ItemBuilder;
+import me.putindeer.api.util.builder.ItemBuilder;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -32,16 +31,10 @@ import java.util.stream.Stream;
 @SuppressWarnings("unused")
 public class PluginUtils {
     public final JavaPlugin plugin;
-    public final LangManager lang;
 
     public PluginUtils(JavaPlugin plugin, String prefix) {
         this.plugin = plugin;
         this.prefix = chat(prefix);
-        if (plugin != null) {
-            this.lang = null;
-            //this.lang = new LangManager(plugin);
-            StartupManager.registerPlugin(plugin, this);
-        } else lang = null;
     }
 
     /**
@@ -56,17 +49,6 @@ public class PluginUtils {
      */
     public Component chat(String string) {
         return MiniMessage.miniMessage().deserialize(convert(string));
-    }
-
-    /**
-     * Converts and translates a text with HEX codes to a {@link Component}
-     * @param string The input as a {@link String}
-     * @param player The player that is getting the text translated
-     * @return The converted text
-     */
-    public Component chat(String string, CommandSender player) {
-        if (lang == null) return chat(string);
-        return MiniMessage.miniMessage().deserialize(convert(lang.translate(player, string)));
     }
 
     /**
@@ -122,7 +104,7 @@ public class PluginUtils {
     public void broadcast(Sound sound, String... messages) {
         broadcast(true, sound, messages);
     }
-    public void broadcast(TypedKey<Sound> soundKey, String... messages) {
+    public void broadcast(TypedKey<@NotNull Sound> soundKey, String... messages) {
         broadcast(true, Sound.sound(soundKey, Sound.Source.MASTER, 10f, 1f), messages);
     }
 
@@ -167,7 +149,7 @@ public class PluginUtils {
     }
 
     public void message(CommandSender receiver, boolean usePrefix, Sound sound, String... messages) {
-        message(receiver, usePrefix, sound, Arrays.stream(messages).map(msg -> chat(msg, receiver)).toArray(Component[]::new));
+        message(receiver, usePrefix, sound, Arrays.stream(messages).map(this::chat).toArray(Component[]::new));
     }
     //endregion
     //region [Component methods]
@@ -267,12 +249,29 @@ public class PluginUtils {
         return "<click:run_command:" + command + ">" + command + "</click>";
     }
 
+    public ItemBuilder goldenHeadTexture() {
+        return goldenHeadTexture(Material.PLAYER_HEAD, 1);
+    }
+
+    public ItemBuilder goldenHeadTexture(int amount) {
+        return goldenHeadTexture(Material.PLAYER_HEAD, amount);
+    }
+
+    public ItemBuilder goldenHeadTexture(Material material) {
+        return goldenHeadTexture(material, 1);
+    }
+
+    public ItemBuilder goldenHeadTexture(Material material, int amount) {
+        return ib(material, amount).profileTexture("e3RleHR1cmVzOntTS0lOOnt1cmw6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNGU1YjMwOGExZWI1Y2FhOTdlNWZiMjU3YjJkOWUxODYxZmRlZjE1MTYxZDUwYTFmNDZmMjIzMTVmNDkyOSJ9fX0=")
+                .model(Material.PLAYER_HEAD);
+    }
+
     public ItemStack marlowGHead() {
         return marlowGHead(1);
     }
 
     public ItemStack marlowGHead(int amount) {
-        return ib(Material.GOLDEN_APPLE, amount)
+        return goldenHeadTexture(Material.PLAYER_HEAD, amount)
                 .name("Golden Head")
                 .lore("<blue><lang:effect.minecraft.absorption> (02:00)", "<blue><lang:effect.minecraft.regeneration> III (00:05)", "<gray>Cooldown:<yellow> 10 seconds")
                 .rarity(ItemRarity.RARE)
@@ -283,9 +282,26 @@ public class PluginUtils {
                 .consumingSound(SoundEventKeys.ENTITY_GENERIC_EAT)
                 .consumeParticles(false)
                 .consumeApplyEffects(new PotionEffect(PotionEffectType.ABSORPTION, 2400, 0), new PotionEffect(PotionEffectType.REGENERATION, 100, 2))
-                .profileTexture("e3RleHR1cmVzOntTS0lOOnt1cmw6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNGU1YjMwOGExZWI1Y2FhOTdlNWZiMjU3YjJkOWUxODYxZmRlZjE1MTYxZDUwYTFmNDZmMjIzMTVmNDkyOSJ9fX0=")
-                .model(Material.PLAYER_HEAD)
                 .build();
+    }
+
+    public String getTimeAgo(long timestamp) {
+        long diff = System.currentTimeMillis() - timestamp;
+
+        long seconds = diff / 1000;
+        long minutes = seconds / 60;
+        long hours = minutes / 60;
+        long days = hours / 24;
+
+        if (days > 0) {
+            return days == 1 ? "1 day ago" : days + " days ago";
+        } else if (hours > 0) {
+            return hours == 1 ? "1 hour ago" : hours + " hours ago";
+        } else if (minutes > 0) {
+            return minutes == 1 ? "1 minute ago" : minutes + " minutes ago";
+        } else {
+            return seconds == 1 ? "1 second ago" : seconds + " seconds ago";
+        }
     }
 
     //region [Methods of 'log']
@@ -373,6 +389,10 @@ public class PluginUtils {
         }
     }
     //endregion
+
+    public void actionBar(Player player, String message) {
+        player.sendActionBar(chat(message));
+    }
 
     /**
      * Restores the player's health to maximum
@@ -670,7 +690,7 @@ public class PluginUtils {
      * @param mat The {@link Material} to use for the item
      */
     public ItemBuilder ib(Material mat) {
-        return ib(new ItemStack(mat), 1, null);
+        return ib(new ItemStack(mat), 1);
     }
 
     /**
@@ -680,17 +700,7 @@ public class PluginUtils {
      * @param amount The amount of items in the stack
      */
     public ItemBuilder ib(Material mat, int amount) {
-        return ib(new ItemStack(mat), amount, null);
-    }
-
-    /**
-     * Constructs an ItemBuilder with the specified material and amount.
-     *
-     * @param mat    The {@link Material} to use for the item
-     * @param player The player, used to translate using the translation keys of each player.
-     */
-    public ItemBuilder ib(Material mat, Player player) {
-        return ib(new ItemStack(mat), 1, player);
+        return ib(new ItemStack(mat), amount);
     }
 
     /**
@@ -699,7 +709,7 @@ public class PluginUtils {
      * @param item The base {@link ItemStack} to modify
      */
     public ItemBuilder ib(ItemStack item) {
-        return ib(item, 1, null);
+        return new ItemBuilder(item,this);
     }
 
     /**
@@ -709,28 +719,7 @@ public class PluginUtils {
      * @param amount The amount of items in the stack
      */
     public ItemBuilder ib(ItemStack item, int amount) {
-        return ib(item, amount, null);
-    }
-
-    /**
-     * Constructs an ItemBuilder with an existing ItemStack and amount of 1.
-     *
-     * @param item The base {@link ItemStack} to modify
-     * @param player The player, used to translate using the translation keys of each player.
-     */
-    public ItemBuilder ib(ItemStack item, Player player) {
-        return ib(item, 1, player);
-    }
-
-    /**
-     * Constructs an ItemBuilder with an existing ItemStack and specified amount.
-     *
-     * @param item   The base {@link ItemStack} to modify
-     * @param amount The amount of items in the stack
-     * @param player The player, used to translate using the translation keys of each player.
-     */
-    public ItemBuilder ib(ItemStack item, int amount, Player player) {
-        return new ItemBuilder(item, amount, player, this);
+        return new ItemBuilder(item, amount, this);
     }
     //endregion
 }

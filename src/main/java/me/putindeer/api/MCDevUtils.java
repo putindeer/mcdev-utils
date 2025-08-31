@@ -1,9 +1,9 @@
-package us.polarismc.api;
+package me.putindeer.api;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
-public final class PolarisAPI extends JavaPlugin {
-    public static PolarisAPI instance;
+public final class MCDevUtils extends JavaPlugin {
+    public static MCDevUtils instance;
     @Override
     public void onEnable() {
         instance = this;
