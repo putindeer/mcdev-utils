@@ -1,10 +1,9 @@
-package us.polarismc.api.util.builder;
+package me.putindeer.api.util.builder;
 
 import org.bukkit.*;
 import org.bukkit.WorldCreator;
 import org.bukkit.WorldType;
 import org.bukkit.generator.ChunkGenerator;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.util.HashMap;
@@ -36,8 +35,7 @@ import java.util.Map;
  */
 @SuppressWarnings("unused")
 public class WorldBuilder {
-    private final JavaPlugin plugin;
-    private String name;
+    private final String name;
     private Long seed;
     private World.Environment environment;
     private ChunkGenerator generator;
@@ -54,11 +52,9 @@ public class WorldBuilder {
      * Creates a new WorldBuilder instance.
      *
      * @param name The name of the world
-     * @param plugin The JavaPlugin instance that is creating the world
      */
-    public WorldBuilder(String name, JavaPlugin plugin) {
+    public WorldBuilder(String name) {
         this.name = name;
-        this.plugin = plugin;
     }
 
     /**
@@ -67,7 +63,7 @@ public class WorldBuilder {
      * @param seed The seed value that determines the world's terrain generation
      * @return This {@link WorldBuilder} instance
      */
-    public WorldBuilder seed(long seed) {
+    public WorldBuilder seed(Long seed) {
         this.seed = seed;
         return this;
     }
@@ -196,7 +192,7 @@ public class WorldBuilder {
         if (Bukkit.getWorld(name) != null) {
             return true;
         }
-        File worldDir = new File(plugin.getDataFolder().getParentFile().getParentFile(), name);
+        File worldDir = new File(Bukkit.getWorldContainer(), name);
         return worldDir.exists() && worldDir.isDirectory();
     }
 
