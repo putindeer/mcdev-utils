@@ -723,7 +723,7 @@ public class PluginUtils {
     }
     //endregion
 
-    private boolean isTool(ItemStack item) {
+    public boolean isTool(ItemStack item) {
         String name = item.getType().name();
         return name.endsWith("_AXE") || name.endsWith("_PICKAXE") || name.endsWith("_HOE") || name.endsWith("_SHOVEL")
                 || item.getType() == Material.SHEARS || item.getType() == Material.FISHING_ROD || item.getType() == Material.FLINT_AND_STEEL;
