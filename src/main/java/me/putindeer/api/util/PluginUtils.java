@@ -728,4 +728,14 @@ public class PluginUtils {
         return name.endsWith("_AXE") || name.endsWith("_PICKAXE") || name.endsWith("_HOE") || name.endsWith("_SHOVEL")
                 || item.getType() == Material.SHEARS || item.getType() == Material.FISHING_ROD || item.getType() == Material.FLINT_AND_STEEL;
     }
+
+    public void giveOrDrop(Player player, ItemStack item) {
+        if (player.getInventory().firstEmpty() == -1) {
+            World world = player.getWorld();
+            world.dropItemNaturally(player.getLocation(), item);
+        } else {
+            player.playSound(Sound.sound(SoundEventKeys.ENTITY_ITEM_PICKUP, Sound.Source.PLAYER, 0.15f, 2.0f));
+            player.getInventory().addItem(item);
+        }
+    }
 }
