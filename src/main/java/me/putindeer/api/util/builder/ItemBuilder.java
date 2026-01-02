@@ -44,7 +44,7 @@ import java.util.*;
  * }
  * </pre>
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "UnstableApiUsage"})
 public class ItemBuilder {
     private final ItemStack item;
     private final PluginUtils utils;
@@ -268,6 +268,11 @@ public class ItemBuilder {
     public ItemBuilder substractDurability(int value) {
         Integer actualDurability = item.getData(DataComponentTypes.DAMAGE);
         if (actualDurability != null) return durability(actualDurability - value);
+        return this;
+    }
+
+    public ItemBuilder maxDurability(int value) {
+        item.setData(DataComponentTypes.MAX_DAMAGE, value);
         return this;
     }
 
