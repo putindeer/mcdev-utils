@@ -24,6 +24,7 @@ import org.bukkit.potion.PotionEffectType;
 import me.putindeer.api.util.builder.ItemBuilder;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -231,11 +232,11 @@ public class PluginUtils {
     }
 
     public void title(Player player, String title) {
-        title(player, title, "", null);
+        title(player, title, "", (Sound) null);
     }
 
     public void title(Player player, String title, String subtitle) {
-        title(player, title, subtitle, null);
+        title(player, title, subtitle, (Sound) null);
     }
 
     public void title(Player player, String title, String subtitle, Sound sound) {
@@ -243,6 +244,44 @@ public class PluginUtils {
         if (sound != null) {
             player.playSound(sound);
         }
+    }
+
+    public void title(List<Player> players, String title, Title.Times times) {
+        players.forEach(player -> title(player, title, "", null, times));
+    }
+
+    public void title(List<Player> players, String title, String subtitle, Title.Times times) {
+        players.forEach(player -> title(player, title, subtitle, null, times));
+    }
+
+    public void title(List<Player> players, String title, String subtitle, Sound sound, Title.Times times) {
+        players.forEach(player -> title(player, title, subtitle, sound, times));
+    }
+
+    public void title(Player player, String title, Title.Times times) {
+        title(player, title, "", null, times);
+    }
+
+    public void title(Player player, String title, String subtitle, Title.Times times) {
+        title(player, title, subtitle, null, times);
+    }
+
+    public void title(Player player, String title, String subtitle, Sound sound, Title.Times times) {
+        Title advTitle = Title.title(chat(title), chat(subtitle), times);
+
+        player.showTitle(advTitle);
+
+        if (sound != null) {
+            player.playSound(sound);
+        }
+    }
+
+    public Title.Times timesFromTicks(long fadeInTicks, long stayTicks, long fadeOutTicks) {
+        return Title.Times.times(
+                Duration.ofMillis(fadeInTicks * 50),
+                Duration.ofMillis(stayTicks * 50),
+                Duration.ofMillis(fadeOutTicks * 50)
+        );
     }
 
     public String clickableCommand(String command) {
