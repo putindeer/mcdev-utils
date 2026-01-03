@@ -271,6 +271,12 @@ public class ItemBuilder {
         return this;
     }
 
+    /**
+     * Sets the maximum durability damage value of the item.
+     * This allows damaging items that are non-damageable by default
+     * @param value The amount to set as the maximum durability damage value
+     * @return This builder instance for chainingq
+     */
     public ItemBuilder maxDurability(int value) {
         item.setData(DataComponentTypes.MAX_DAMAGE, value);
         return this;
