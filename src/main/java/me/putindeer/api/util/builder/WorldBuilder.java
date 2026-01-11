@@ -130,7 +130,7 @@ public class WorldBuilder {
      * @return This {@link WorldBuilder} instance
      */
     public WorldBuilder pvp(boolean pvp) {
-        this.pvp = pvp;
+        gamerules.put(GameRules.PVP, pvp);
         return this;
     }
 
@@ -241,9 +241,6 @@ public class WorldBuilder {
 
         if (difficulty != null) {
             world.setDifficulty(difficulty);
-        }
-        if (pvp != null) {
-            world.setPVP(pvp);
         }
         if (autoSave != null) {
             world.setAutoSave(autoSave);
