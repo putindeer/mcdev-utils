@@ -31,7 +31,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "UnstableApiUsage"})
 public class PluginUtils {
     public final JavaPlugin plugin;
 
