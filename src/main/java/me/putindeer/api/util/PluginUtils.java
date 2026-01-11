@@ -14,7 +14,8 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.ItemStack;
@@ -23,6 +24,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import me.putindeer.api.util.builder.ItemBuilder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 import java.util.*;
@@ -776,5 +778,14 @@ public class PluginUtils {
             player.playSound(Sound.sound(SoundEventKeys.ENTITY_ITEM_PICKUP, Sound.Source.PLAYER, 0.15f, 2.0f));
             player.getInventory().addItem(item);
         }
+    }
+
+    public @Nullable Player getDamager(EntityDamageByEntityEvent event) {
+        return switch (event.getDamager()) {
+            case Player player -> player;
+            case Projectile projectile when projectile.getShooter() instanceof Player player -> player;
+            case AreaEffectCloud cloud when cloud.getSource() instanceof Player player -> player;
+            default -> null;
+        };
     }
 }
