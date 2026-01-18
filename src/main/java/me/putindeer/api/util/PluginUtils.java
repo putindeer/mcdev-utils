@@ -788,4 +788,13 @@ public class PluginUtils {
             default -> null;
         };
     }
+
+    public int getMaterialAmount(Player player, Material material) {
+        int amount = 0;
+        for (ItemStack item : player.getInventory().getStorageContents()) {
+            if (item == null || item.getType() != material) continue;
+            amount += item.getAmount();
+        }
+        return amount;
+    }
 }
