@@ -15,17 +15,30 @@ concurrency:
 jobs:
   release:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
       - name: Read version from pom.xml
         id: pom
         shell: bash
         run: |
-          VERSION="$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)"
+          VERSION="$(mvn -q -DforceStdout help:evaluate -Dexpression=project.version)"
+          VERSION="$(echo "$VERSION" | tr -d '\r\n' | xargs)"
+          if [ -z "$VERSION" ]; then
+            echo "Failed to read version from pom.xml" >&2
+            exit 1
+          fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=$VERSION" >> "$GITHUB_OUTPUT"
 
@@ -58,31 +71,32 @@ jobs:
           name: ${{ steps.pom.outputs.tag }}
           generate_release_notes: true
 
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: master
-
       - name: Update version in README
+        if: steps.tagcheck.outputs.exists == 'false'
+        shell: bash
         run: |
-          VERSION=${GITHUB_REF#refs/tags/}
-          echo "Updating to version: $VERSION"
-          
-          # Update Maven version
-          sed -i "s/<version>.*<\/version>/<version>$VERSION<\/version>/" README.md
-          
-          # Update Gradle version
-          sed -i "s/mcdev-utils:[0-9]\+\.[0-9]\+\.[0-9]\+/mcdev-utils:$VERSION/" README.md
+          VERSION="${{ steps.pom.outputs.tag }}"
+          echo "Updating README to version: $VERSION"
 
-      - name: Commit and push changes
+          # Maven (<version>1.2.3</version>) - SOLO cambia números x.y.z
+          sed -i -E "s|(<version>)[0-9]+\.[0-9]+\.[0-9]+(</version>)|\1$VERSION\2|g" README.md
+
+          # Gradle (mcdev-utils:1.2.3)
+          sed -i -E "s|(mcdev-utils:)[0-9]+\.[0-9]+\.[0-9]+|\1$VERSION|g" README.md
+
+      - name: Commit and push README changes
+        if: steps.tagcheck.outputs.exists == 'false'
+        shell: bash
         run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
+          VERSION="${{ steps.pom.outputs.tag }}"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
           git add README.md
-          
+
           if git diff --staged --quiet; then
             echo "No changes to commit"
-          else
-            git commit -m "docs: update version to $VERSION in README"
-            git push
+            exit 0
           fi
+
+          git commit -m "docs: update version to $VERSION in README"
+          git push origin master
