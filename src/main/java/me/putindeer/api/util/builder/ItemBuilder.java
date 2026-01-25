@@ -634,10 +634,25 @@ public class ItemBuilder {
         return this;
     }
 
+    /**
+     * Applies the given potion effects to the item being built. This method sets the effects to be
+     * applied when the item is consumed.
+     *
+     * @param effects the potion effects to be applied. Each effect represents a status effect
+     *                that will be imposed on the consumer of the item.
+     * @return the updated ItemBuilder instance, allowing for method chaining.
+     */
     public ItemBuilder consumeApplyEffects(PotionEffect... effects) {
         return consumeApplyEffects(1, effects);
     }
 
+    /**
+     * Configures the item to apply specified potion effects when consumed, with a given probability.
+     *
+     * @param probability the probability (in percentage) for the effects to be applied when the item is consumed
+     * @param effects an array of potion effects to be applied upon consumption
+     * @return the current instance of the ItemBuilder, allowing for method chaining.
+     * */
     public ItemBuilder consumeApplyEffects(int probability, PotionEffect... effects) {
         item.setData(DataComponentTypes.CONSUMABLE, getConsumableBuilder().addEffect(ConsumeEffect.applyStatusEffects(List.of(effects), probability)).build());
         return this;
@@ -677,6 +692,12 @@ public class ItemBuilder {
         return this;
     }
 
+    /**
+     * Configures the item to play a sound when consumed by setting a consumable effect.
+     *
+     * @param key the sound key that identifies the sound to be played upon consuming the item
+     * @return the updated instance of the ItemBuilder
+     */
     public ItemBuilder consumePlaySound(Key key) {
         item.setData(DataComponentTypes.CONSUMABLE, getConsumableBuilder().addEffect(ConsumeEffect.playSoundConsumeEffect(key)).build());
         return this;
@@ -702,49 +723,119 @@ public class ItemBuilder {
         return builder;
     }
 
+    /**
+     * Sets a use cooldown period for the item.
+     *
+     * @param seconds the cooldown duration in seconds
+     * @return the current instance of {@code ItemBuilder} for method chaining
+     */
     public ItemBuilder useCooldown(int seconds) {
         item.setData(DataComponentTypes.USE_COOLDOWN, UseCooldown.useCooldown(seconds));
         return this;
     }
 
+    /**
+     * Sets a cooldown for the item with a specified duration and cooldown group.
+     *
+     * @param seconds the duration of the cooldown in seconds
+     * @param key the unique key identifying the cooldown group
+     * @return the updated ItemBuilder instance
+     */
     public ItemBuilder useCooldown(int seconds, String key) {
         item.setData(DataComponentTypes.USE_COOLDOWN, UseCooldown.useCooldown(seconds).cooldownGroup(new NamespacedKey(utils.plugin.getName(), key)).build());
         return this;
     }
+
+    /**
+     * Sets a use cooldown for the item, preventing it from being used again
+     * within the specified cooldown period.
+     *
+     * @param seconds the duration of the cooldown in seconds
+     * @param identifier the namespace identifier for the cooldown group
+     * @param key the key for identifying the specific cooldown group
+     * @return the current instance of ItemBuilder for chaining
+     */
     public ItemBuilder useCooldown(int seconds, String identifier, String key) {
         item.setData(DataComponentTypes.USE_COOLDOWN, UseCooldown.useCooldown(seconds).cooldownGroup(new NamespacedKey(identifier, key)).build());
         return this;
     }
 
+    /**
+     * Sets the rarity of the item using the specified {@link ItemRarity}.
+     *
+     * @param rarity the rarity to assign to the item
+     * @return the current instance of {@code ItemBuilder} for method chaining
+     */
     public ItemBuilder rarity(ItemRarity rarity) {
         item.setData(DataComponentTypes.RARITY, rarity);
         return this;
     }
 
+    /**
+     * Configures the food properties for the item being built.
+     *
+     * @param nutrition the nutritional value of the food item.
+     * @param saturation the saturation modifier of the food item.
+     * @param canAlwaysEat determines if the food can be consumed regardless of the player's hunger level.
+     * @return the current instance of {@code ItemBuilder} with updated food properties.
+     */
     public ItemBuilder food(int nutrition, float saturation, boolean canAlwaysEat) {
         item.setData(DataComponentTypes.FOOD, FoodProperties.food().nutrition(nutrition).saturation(saturation).canAlwaysEat(canAlwaysEat).build());
         return this;
     }
 
+    /**
+     * Sets the food properties for the item being built, including its nutritional value
+     * and saturation level. This method allows customization of the item's food properties.
+     *
+     * @param nutrition the nutritional value of the food, which determines how many hunger points it restores
+     * @param saturation the saturation modifier of the food, which influences how long the hunger bar stays full
+     * @return the current instance of {@code ItemBuilder} for method chaining
+     */
     public ItemBuilder food(int nutrition, float saturation) {
         return food(nutrition, saturation, false);
     }
 
+    /**
+     * Sets the model data for the item using the specified namespace and key.
+     *
+     * @param namespace the namespace to be used for the model's namespaced key
+     * @param key the key to be associated with the model's namespaced key
+     * @return the current instance of {@code ItemBuilder} for method chaining
+     */
     public ItemBuilder model(String namespace, String key) {
         item.setData(DataComponentTypes.ITEM_MODEL, new NamespacedKey(namespace, key));
         return this;
     }
 
+    /**
+     * Sets the model of the item using the specified material.
+     *
+     * @param material the material to be used for setting the item model
+     * @return the current instance of {@code ItemBuilder} for method chaining
+     */
     public ItemBuilder model(Material material) {
         item.setData(DataComponentTypes.ITEM_MODEL, Objects.requireNonNull(material.getKey()));
         return this;
     }
 
+    /**
+     * Sets the model of the current item by associating a specified key.
+     *
+     * @param key the key to set as the model for the item
+     * @return the current instance of {@code ItemBuilder} for method chaining
+     */
     public ItemBuilder model(Key key) {
         item.setData(DataComponentTypes.ITEM_MODEL, key);
         return this;
     }
 
+    /**
+     * Sets the maximum stack size for the item and returns the updated ItemBuilder instance.
+     *
+     * @param stackSize the maximum stack size to set for the item
+     * @return the current ItemBuilder instance with the updated maximum stack size
+     */
     public ItemBuilder maxStackSize(int stackSize) {
         item.setData(DataComponentTypes.MAX_STACK_SIZE, stackSize);
         return this;
