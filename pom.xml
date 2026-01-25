@@ -6,7 +6,7 @@
 
     <groupId>me.putindeer</groupId>
     <artifactId>mcdev-utils</artifactId>
-    <version>1.0.13</version>
+    <version>1.0.14</version>
     <packaging>jar</packaging>
 
     <name>mcdev-utils</name>
