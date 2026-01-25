@@ -237,10 +237,10 @@ public class ItemBuilder {
     }
 
     /**
-     * Sets the durability damage value of the item.
+     * Sets the durability value for the item.
      *
-     * @param durability The durability damage value to set
-     * @return This builder instance for chaining
+     * @param durability the durability value to be set for the item
+     * @return the current instance of {@code ItemBuilder} for method chaining
      */
     public ItemBuilder durability(int durability) {
         item.setData(DataComponentTypes.DAMAGE, durability);
