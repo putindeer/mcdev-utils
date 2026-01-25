@@ -248,10 +248,25 @@ public class ItemBuilder {
     }
 
     /**
+     * Sets the item's durability as a percentage of its maximum durability.
+     * The percentage value should be between 0 and 100 (inclusive).
+     * If the percentage is invalid or the item's current durability is unavailable, the method will return the current ItemBuilder instance without making changes.
+     *
+     * @param percentage The durability percentage to set, ranging from 0 to 100.
+     * @return The current ItemBuilder instance with the updated durability, or unchanged if the percentage is invalid or the item's durability data is unavailable.
+     */
+    public ItemBuilder durabilityPercentage(float percentage) {
+        Integer currentDurability = item.getData(DataComponentTypes.DAMAGE);
+        if (currentDurability == null || percentage < 0 || percentage > 100) return this;
+        int newDurability = (int) (currentDurability * (percentage / 100));
+        return durability(newDurability);
+    }
+
+    /**
      * Adds to the current durability damage value of the item.
      *
      * @param value The amount to add to the current durability damage
-     * @return This builder instance for chaining
+     * @return the modified {@code ItemBuilder} instance, allowing method chaining.
      */
     public ItemBuilder addDurability(int value) {
         Integer actualDurability = item.getData(DataComponentTypes.DAMAGE);
@@ -263,7 +278,7 @@ public class ItemBuilder {
      * Subtracts from the current durability damage value of the item.
      *
      * @param value The amount to subtract from the current durability damage
-     * @return This builder instance for chaining
+     * @return the modified {@code ItemBuilder} instance, allowing method chaining.
      */
     public ItemBuilder substractDurability(int value) {
         Integer actualDurability = item.getData(DataComponentTypes.DAMAGE);
@@ -275,11 +290,25 @@ public class ItemBuilder {
      * Sets the maximum durability damage value of the item.
      * This allows damaging items that are non-damageable by default
      * @param value The amount to set as the maximum durability damage value
-     * @return This builder instance for chainingq
+     * @return the modified {@code ItemBuilder} instance, allowing method chaining.
      */
     public ItemBuilder maxDurability(int value) {
         item.setData(DataComponentTypes.MAX_DAMAGE, value);
         return this;
+    }
+
+    /**
+     * Sets the maximum durability of the item to a specified percentage of its current maximum durability.
+     *
+     * @param percentage the percentage of the item's current maximum durability to set as the new maximum durability.
+     *                   Values less than 0 are ignored.
+     * @return the modified {@code ItemBuilder} instance, allowing method chaining.
+     */
+    public ItemBuilder maxDurabilityPercentage(float percentage) {
+        Integer maxDurability = item.getData(DataComponentTypes.MAX_DAMAGE);
+        if (maxDurability == null || percentage < 0) return this;
+        int newMaxDurability = (int) (maxDurability * (percentage / 100));
+        return maxDurability(newMaxDurability);
     }
 
     /**
