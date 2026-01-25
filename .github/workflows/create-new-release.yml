@@ -54,5 +54,6 @@ jobs:
         if: steps.tagcheck.outputs.exists == 'false'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.pom.outputs.tag }}
           name: ${{ steps.pom.outputs.tag }}
           generate_release_notes: true
