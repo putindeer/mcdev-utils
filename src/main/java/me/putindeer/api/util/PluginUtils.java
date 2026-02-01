@@ -278,6 +278,38 @@ public class PluginUtils {
         }
     }
 
+    public void broadcastTitle(String title) {
+        broadcastTitle(title, "", (Sound) null);
+    }
+
+    public void broadcastTitle(String title, String subtitle) {
+        broadcastTitle(title, subtitle, (Sound) null);
+    }
+
+    public void broadcastTitle(String title, String subtitle, Sound sound) {
+        Title advTitle = Title.title(chat(title), chat(subtitle));
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            player.showTitle(advTitle);
+            if (sound != null) player.playSound(sound);
+        }
+    }
+
+    public void broadcastTitle(String title, Title.Times times) {
+        broadcastTitle(title, "", null, times);
+    }
+
+    public void broadcastTitle(String title, String subtitle, Title.Times times) {
+        broadcastTitle(title, subtitle, null, times);
+    }
+
+    public void broadcastTitle(String title, String subtitle, Sound sound, Title.Times times) {
+        Title advTitle = Title.title(chat(title), chat(subtitle), times);
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            player.showTitle(advTitle);
+            if (sound != null) player.playSound(sound);
+        }
+    }
+
     public Title.Times timesFromTicks(long fadeInTicks, long stayTicks, long fadeOutTicks) {
         return Title.Times.times(
                 Duration.ofMillis(fadeInTicks * 50),
