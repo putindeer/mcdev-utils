@@ -812,6 +812,10 @@ public class PluginUtils {
         }
     }
 
+    public void giveOrDrop(Player player, Collection<ItemStack> items) {
+        items.forEach(item -> giveOrDrop(player, item));
+    }
+
     public @Nullable Player getDamager(EntityDamageByEntityEvent event) {
         return switch (event.getDamager()) {
             case Player player -> player;
