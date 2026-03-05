@@ -24,7 +24,7 @@ Minecraft plugin development utilities.
 <dependency>
     <groupId>com.github.putindeer</groupId>
     <artifactId>mcdev-utils</artifactId>
-    <version>1.0.17</version>
+    <version>1.0.18</version>
 </dependency>
 ```
 
@@ -36,6 +36,6 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.putindeer:mcdev-utils:1.0.17'
+    implementation 'com.github.putindeer:mcdev-utils:1.0.18'
 }
 ```
