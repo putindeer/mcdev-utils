@@ -365,6 +365,19 @@ public class ItemBuilder {
     }
 
     /**
+     * Hides the banner patterns in the item builder.
+     * <br><br>
+     * This method modifies the item's metadata to ensure that any banner patterns
+     * present are no longer visible. Typically used for customization in cases
+     * where a cleaner item appearance is desired.
+     *
+     * @return the updated ItemBuilder instance with the banner patterns hidden
+     */
+    public ItemBuilder hideBannerPatterns() {
+        return hide(DataComponentTypes.BANNER_PATTERNS);
+    }
+
+    /**
      * Hides everything that could be seen in a GUI.
      *
      * @return This builder instance for chaining
