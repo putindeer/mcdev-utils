@@ -344,7 +344,7 @@ public class PluginUtils {
     }
 
     public ItemStack marlowGHead(int amount) {
-        return goldenHeadTexture(Material.PLAYER_HEAD, amount)
+        return goldenHeadTexture(Material.GOLDEN_APPLE, amount)
                 .name("Golden Head")
                 .lore("<blue><lang:effect.minecraft.absorption> (02:00)", "<blue><lang:effect.minecraft.regeneration> III (00:05)", "<gray>Cooldown:<yellow> 10 seconds")
                 .rarity(ItemRarity.RARE)
