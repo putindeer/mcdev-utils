@@ -53,24 +53,6 @@ jobs:
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Create Git tag
-        if: steps.tagcheck.outputs.exists == 'false'
-        shell: bash
-        run: |
-          TAG="${{ steps.pom.outputs.tag }}"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -a "$TAG" -m "Release $TAG"
-          git push origin "$TAG"
-
-      - name: Create GitHub Release
-        if: steps.tagcheck.outputs.exists == 'false'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.pom.outputs.tag }}
-          name: ${{ steps.pom.outputs.tag }}
-          generate_release_notes: true
-
       - name: Update version in README
         if: steps.tagcheck.outputs.exists == 'false'
         shell: bash
@@ -100,3 +82,21 @@ jobs:
 
           git commit -m "docs: update version to $VERSION in README"
           git push origin master
+
+      - name: Create Git tag
+        if: steps.tagcheck.outputs.exists == 'false'
+        shell: bash
+        run: |
+          TAG="${{ steps.pom.outputs.tag }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "$TAG"
+
+      - name: Create GitHub Release
+        if: steps.tagcheck.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.pom.outputs.tag }}
+          name: ${{ steps.pom.outputs.tag }}
+          generate_release_notes: true
