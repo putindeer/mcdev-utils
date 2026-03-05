@@ -50,7 +50,7 @@ public class PluginUtils {
      *
      * @param prefix the string value to set as the prefix
      */
-    private void setPrefix(String prefix) {
+    public void setPrefix(String prefix) {
         this.prefix = chat(prefix);
     }
 
