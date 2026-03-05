@@ -43,7 +43,16 @@ public class PluginUtils {
     /**
      * Plugin prefix
      */
-    public final Component prefix;
+    public Component prefix;
+
+    /**
+     * Sets the prefix for the current instance.
+     *
+     * @param prefix the string value to set as the prefix
+     */
+    private void setPrefix(String prefix) {
+        this.prefix = chat(prefix);
+    }
 
     /**
      * Converts a text with HEX codes to a {@link Component}
