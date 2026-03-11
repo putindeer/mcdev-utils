@@ -116,7 +116,8 @@ public class PluginUtils {
     public void broadcast(Sound sound, String... messages) {
         broadcast(true, sound, messages);
     }
-    public void broadcast(TypedKey<@NotNull Sound> soundKey, String... messages) {
+
+    public void broadcast(TypedKey<Sound> soundKey, String... messages) {
         broadcast(true, Sound.sound(soundKey, Sound.Source.MASTER, 10f, 1f), messages);
     }
 
