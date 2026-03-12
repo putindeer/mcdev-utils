@@ -11,11 +11,13 @@ import io.papermc.paper.registry.RegistryKey;
 import io.papermc.paper.registry.TypedKey;
 import io.papermc.paper.registry.set.RegistryKeySet;
 import io.papermc.paper.registry.set.RegistrySet;
+import io.papermc.paper.registry.tag.TagKey;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.*;
 import org.bukkit.block.banner.Pattern;
+import org.bukkit.damage.DamageType;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.ItemStack;
@@ -852,6 +854,37 @@ public class ItemBuilder {
     public ItemBuilder maxStackSize(int stackSize) {
         item.setData(DataComponentTypes.MAX_STACK_SIZE, stackSize);
         return this;
+    }
+
+    /**
+     * Sets the item to be damage resistant with the specified key.
+     *
+     * @param key the key representing the damage resistant type to be associated with the item
+     * @return the updated instance of ItemBuilder with the damage resistant data applied
+     */
+    public ItemBuilder damageResistant(Key key) {
+        item.setData(DataComponentTypes.DAMAGE_RESISTANT, DamageResistant.damageResistant(TagKey.create(RegistryKey.DAMAGE_TYPE, key)));
+        return this;
+    }
+
+    /**
+     * Adds damage resistance functionality to the item using the specified key.
+     *
+     * @param key The string identifier for the damage resistance functionality.
+     * @return An updated instance of ItemBuilder with damage resistance applied.
+     */
+    public ItemBuilder damageResistant(String key) {
+        return damageResistant(new NamespacedKey(utils.plugin.getName(), key));
+    }
+
+    /**
+     * Sets the specified {@link DamageType} as resistant for the item being built.
+     *
+     * @param type the damage type to set as resistant
+     * @return the current instance of {@code ItemBuilder} for method chaining
+     */
+    public ItemBuilder damageResistant(DamageType type) {
+        return damageResistant(type.getKey());
     }
 
     /**
