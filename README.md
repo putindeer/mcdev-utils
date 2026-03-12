@@ -36,6 +36,6 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.putindeer:mcdev-utils:1.0.23b'
+    implementation 'com.github.putindeer:mcdev-utils:1.0.24b'
 }
 ```
