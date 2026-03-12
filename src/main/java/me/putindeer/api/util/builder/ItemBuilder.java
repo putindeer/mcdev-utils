@@ -1000,6 +1000,11 @@ public class ItemBuilder {
         return builder;
     }
 
+    public ItemBuilder breakSound(Key soundKey) {
+        item.setData(DataComponentTypes.BREAK_SOUND, soundKey);
+        return this;
+    }
+
     /**
      * Sets a non-valued data component for the item.
      *
