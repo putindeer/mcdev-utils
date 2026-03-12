@@ -888,6 +888,119 @@ public class ItemBuilder {
     }
 
     /**
+     * Adds death protection effects to the item.
+     * This doesn't add any functionality besides the sound and the animation, it just protects the player from dying.
+     *
+     * @return The current instance of ItemBuilder, allowing for method chaining.
+     */
+    public ItemBuilder deathProtection() {
+        item.setData(DataComponentTypes.DEATH_PROTECTION, DeathProtection.deathProtection());
+        return this;
+    }
+
+    /**
+     * Configures the item with effects applied as part of death protection, mimicking the behavior of a totem.
+     * Clears any existing death protection effects and applies specific potion effects for regeneration,
+     * absorption, and fire resistance.
+     *
+     * @return Updated ItemBuilder instance with the configured death protection effects.
+     */
+    public ItemBuilder deathProtectionAsTotem() {
+        deathProtectionClearAllEffects();
+        return deathProtectionApplyEffects(new PotionEffect(PotionEffectType.REGENERATION, 900, 1),
+                new PotionEffect(PotionEffectType.ABSORPTION, 100, 1),
+                new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 800, 0));
+    }
+
+    /**
+     * Adds death protection effects to the item.
+     * When the player would die, these effects are applied instead.
+     *
+     * @param effects The consume effects to add to death protection
+     * @return This builder instance for chaining
+     */
+    public ItemBuilder addDeathProtectionEffects(ConsumeEffect... effects) {
+        item.setData(DataComponentTypes.DEATH_PROTECTION, getDeathProtectionBuilder().addEffects(List.of(effects)).build());
+        return this;
+    }
+
+    /**
+     * Applies potion effects when death protection triggers.
+     *
+     * @param effects The potion effects to apply on death protection
+     * @return This builder instance for chaining
+     */
+    public ItemBuilder deathProtectionApplyEffects(PotionEffect... effects) {
+        return deathProtectionApplyEffects(1, effects);
+    }
+
+    /**
+     * Applies potion effects with a given probability when death protection triggers.
+     *
+     * @param probability The probability (0.0–1.0) for the effects to be applied
+     * @param effects     The potion effects to apply on death protection
+     * @return This builder instance for chaining
+     */
+    public ItemBuilder deathProtectionApplyEffects(float probability, PotionEffect... effects) {
+        item.setData(DataComponentTypes.DEATH_PROTECTION, getDeathProtectionBuilder()
+                .addEffect(ConsumeEffect.applyStatusEffects(List.of(effects), probability)).build());
+        return this;
+    }
+
+    /**
+     * Adds specific effects to remove when death protection triggers.
+     *
+     * @param effects The effect types to remove
+     * @return This builder instance for chaining
+     */
+    public ItemBuilder deathProtectionRemoveEffects(PotionEffectType... effects) {
+        RegistryKeySet<@NotNull PotionEffectType> effectSet = RegistrySet.keySet(RegistryKey.MOB_EFFECT, Arrays.stream(effects)
+                .map(effect -> TypedKey.create(RegistryKey.MOB_EFFECT, effect.getKey())).toList());
+        item.setData(DataComponentTypes.DEATH_PROTECTION, getDeathProtectionBuilder()
+                .addEffect(ConsumeEffect.removeEffects(effectSet)).build());
+        return this;
+    }
+
+    /**
+     * Clears all effects when death protection triggers.
+     *
+     * @return This builder instance for chaining
+     */
+    public ItemBuilder deathProtectionClearAllEffects() {
+        item.setData(DataComponentTypes.DEATH_PROTECTION, getDeathProtectionBuilder()
+                .addEffect(ConsumeEffect.clearAllStatusEffects()).build());
+        return this;
+    }
+
+    /**
+     * Plays a sound when death protection triggers.
+     *
+     * @param key The sound key to play
+     * @return This builder instance for chaining
+     */
+    public ItemBuilder deathProtectionPlaySound(Key key) {
+        item.setData(DataComponentTypes.DEATH_PROTECTION, getDeathProtectionBuilder()
+                .addEffect(ConsumeEffect.playSoundConsumeEffect(key)).build());
+        return this;
+    }
+
+    /**
+     * Helper method to get or create a DeathProtection builder preserving existing effects.
+     *
+     * @return A DeathProtection builder with any existing data
+     */
+    private DeathProtection.Builder getDeathProtectionBuilder() {
+        DeathProtection original = item.getData(DataComponentTypes.DEATH_PROTECTION);
+        DeathProtection.Builder builder = DeathProtection.deathProtection();
+
+        if (original == null) return builder;
+
+        if (!original.deathEffects().isEmpty()) builder.addEffects(original.deathEffects());
+
+        return builder;
+    }
+
+    /**
      * Sets a non-valued data component for the item.
      *
      * @param type The data component type to set
