@@ -174,6 +174,10 @@ public class PluginUtils {
         broadcast(prefix, null, messages);
     }
 
+    public void broadcast(TypedKey<org.bukkit.@NotNull Sound> soundKey, Component... messages) {
+        broadcast(true, Sound.sound(soundKey, Sound.Source.MASTER, 10f, 1f), messages);
+    }
+
     public void broadcast(Sound sound, Component... messages) {
         broadcast(true, sound, messages);
     }
