@@ -24,6 +24,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import me.putindeer.api.util.PluginUtils;
 
@@ -856,6 +857,11 @@ public class ItemBuilder {
         return this;
     }
 
+    public ItemBuilder damageResistant(TagKey<DamageType> damageType) {
+        item.setData(DataComponentTypes.DAMAGE_RESISTANT, DamageResistant.damageResistant(damageType));
+        return this;
+    }
+
     /**
      * Sets the item to be damage resistant with the specified key.
      *
@@ -883,6 +889,8 @@ public class ItemBuilder {
      * @param type the damage type to set as resistant
      * @return the current instance of {@code ItemBuilder} for method chaining
      */
+    @Deprecated
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.1.0")
     public ItemBuilder damageResistant(DamageType type) {
         return damageResistant(type.getKey());
     }
