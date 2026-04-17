@@ -1,5 +1,6 @@
 package me.putindeer.api.util.builder;
 
+import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
 import io.papermc.paper.datacomponent.DataComponentBuilder;
 import io.papermc.paper.datacomponent.DataComponentType;
@@ -419,7 +420,11 @@ public class ItemBuilder {
      * @return This builder instance for chaining
      */
     public ItemBuilder profile(OfflinePlayer player) {
-        item.setData(DataComponentTypes.PROFILE, ResolvableProfile.resolvableProfile(player.getPlayerProfile()));
+        return profile(player.getPlayerProfile());
+    }
+
+    public ItemBuilder profile(PlayerProfile profile) {
+        item.setData(DataComponentTypes.PROFILE, ResolvableProfile.resolvableProfile(profile));
         return this;
     }
 
